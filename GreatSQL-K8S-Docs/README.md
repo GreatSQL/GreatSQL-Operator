@@ -19,7 +19,18 @@
 - 6.Namespace 命名空间
 - 7.ConfigMap 配置管理
 
-### 第三章 实战入门篇
+### [第三章 安装部署Kubernetes](./deep-dive-kubernetes-03.md)
+
+- 1.环境配置
+
+- 2.安装Docker
+- 3.安装Kubernetes组件
+- 4.集群初始化
+- 5.Node节点加入集群
+- 6.检查集群情况
+- 7.问题汇总
+
+
 ## 参考资料、文档
 
 - [Docker与Kubernetes容器运维实战](https://baike.baidu.com/item/Docker与Kubernetes容器运维实战/63475077?fr=ge_ala)

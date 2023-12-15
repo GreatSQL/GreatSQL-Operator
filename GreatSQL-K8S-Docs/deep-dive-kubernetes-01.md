@@ -1,7 +1,7 @@
 # 第一章 Kubernetes 简介
 Kubernetes 是容器技术快速发展的产物。Kubernetes的出现让大量服务器的运维变得便捷、高效起来。
 
-## 应用部署方式演变
+## 一、应用部署方式演变
 
 从部署应用程序的方式上，主要经历了三个时代：
 
@@ -20,10 +20,10 @@ Kubernetes 是容器技术快速发展的产物。Kubernetes的出现让大量�
 - 优点：可以保证每个容器拥有自己的文件系统、CPU、内存、进程空间等，运行应用程序所需要的资源都被容器包装，并和底层基础架构解耦，容器化的应用程序可以跨云服务商、跨Linux操作系统发行版进行部署
 - 缺点：容器故障停机，如何让新容器立即去替补故障机器，并发大时如何做到横向拓展
 
-## 什么是Kubernetes
+## 二、什么是Kubernetes
 Kubernetes是一套自动化容器运维的开源平台，这些运维操作包括部署、调度和节点集群的扩展。可以把Docker看作是Kubernetes内部使用的低级别的组件，而Kubernetes则是管理Docker容器的工具。
 
-## 为什么要用Kubernetes
+## 三、为什么要用Kubernetes
 Kubernetes是一个可自动化部署的，具有可伸缩性的，用于操作应用程序容器的开源平台，使用Kubernetes可以快速、高效的满足用户，Kubernetes具有以下明显优势：
 - 自我修复：一旦某一个容器崩溃，能够在1秒中左右迅速启动新的容器
 - 弹性伸缩：可以根据需要，自动对集群中正在运行的容器数量进行调整
@@ -45,12 +45,12 @@ Kubernetes满足一系列产品内运行程序得普通需求，提供如下一�
 - 资源监控
 - ...
 
-## Kubernetes与Docker Compose的比较
-Docker Compose和 Kubernetes 都具有将它们彼此区分开来的独特功能。Docker Compose是一个基于Docker的单主机容器编排工具.而Kubernetes是一个跨主机的集群部署工具。
+## 四、Kubernetes与Docker Compose的比较
+Docker Compose和 Kubernetes 都具有将它们彼此区分开来的独特功能。Docker Compose是一个基于Docker的单主机容器编排工具而Kubernetes是一个跨主机的集群部署工具。
 
 Docker Compose 非常适合在单个主机上创建和管理多容器 Docker 应用程序，而Kubernetes 非常适合需要高可用性和可扩展性的大规模部署、
 
-## Kubernetes重要概念简介
+## 五、Kubernetes重要概念简介
 
 1. Cluster 集群
 在 Kubernetes 中，集群是计算、存储和网络资源的集合。Kubernetes利用这些基础资源来运行各种应用程序。所以，集群是整个Kubernetes容器集群的基础环境。
@@ -76,7 +76,7 @@ pod对外服务的统一入口，Service下面可以维护者同一类的多个p
 8. Label 标签
 用于对pod进行分类，同一类pod会拥有相同的标签
 
-## 参考资料、文档
+## 参考资料
 
 - [Docker与Kubernetes容器运维实战](https://baike.baidu.com/item/Docker与Kubernetes容器运维实战/63475077?fr=ge_ala)
 

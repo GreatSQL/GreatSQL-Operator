@@ -1,5 +1,5 @@
 # 第二章 Kubernetes的核心概念
-## Kubectl 命令行工具
+## 一、Kubectl 命令行工具
 Kubectl是使用Kubernetes API 与 Kubernetes集群的控制面进行通讯的命令行工具 [点击查看参考网址](Kubernetes.io/docs/reference/generated/kubectl/kubectl-commands)
 
 使用以下语法从终端窗口运行 kubectl 命令：
@@ -45,7 +45,7 @@ Kubectl中的资源类型及其别名和简单用法如下:
 - events (ev) - 事件,如:`kubectl get ev`
 - ingresses (ing) - 入口规则,如:`kubectl get ing`
 
-## YAML 语法
+## 二、YAML 语法
 
 Kubernetes使用yaml文件来描述Kubernetes对象，所以对于yaml语法的了解也是十分重要
 
@@ -58,7 +58,7 @@ Kubernetes使用yaml文件来描述Kubernetes对象，所以对于yaml语法的�
 - `|` 多行文本块
 - `---`表示文档的开始，多用于分割多个资源对象
 
-## Pod 控制器
+## 三、Pod 控制器
 
 Pod是Kubernetes中最小的调度单元，Pod里面可以定义一个或多个容器，如果在一个Pod中存在多个容器，以便它们可以共享网络和存储资源，并且可以协同工作来完成一个任务。
 
@@ -72,7 +72,7 @@ Pod是Kubernetes中最小的调度单元，Pod里面可以定义一个或多个�
 - CronJob：它创建的Pod负责周期性任务控制，不需要持续后台运行
 - StatefulSet：管理有状态应用
 
-## Service 服务
+## 四、Service 服务
 
 使用kubernetes集群运行工作负载时，由于Pod经常处于用后即焚状态，Pod经常被重新生成，因此Pod对应的IP地址也会经常变化，导致无法直接访问Pod提供的服务
 
@@ -86,7 +86,7 @@ Kubernetes中使用了Service来解决这一问题，即在Pod前面使用Servic
 - 通过Service实现Pod的负载均衡（TCP/UDP 4层）
 - 底层实现由kube-proxy通过userspace、iptables、ipvs三种代理模式
 
-## Volume 卷
+## 五、Volume 卷
 
 知道 Pod 是由容器组成的，当容器宕机或停止之后数据就会随之丢失。这可能会给在容器中运行的应用程序带来了一些问题，例如，当容器崩溃时由 kubelet 重新启动的容器是一个全新的，之前的文件数据都丢失了。对于这种情况我们可以使用 Volume（卷）来解决。
 
@@ -131,7 +131,7 @@ NFS 类型卷用于将现有 NFS（网络文件系统）挂载到 Pod 中。当�
 
 可以使用`yum install -y nfs-utils`安装NFS，配置NFS在后续章节会讲解
 
-## Namespace 命名空间
+## 六、Namespace 命名空间
 
 **命名空间(Namespace)**是一种资源隔离机制，将同一集群中的资源划分为相互隔离的组。
 
@@ -152,7 +152,7 @@ NFS 类型卷用于将现有 NFS（网络文件系统）挂载到 Pod 中。当�
 - `kube-public` 自动创建的公共命名空间，所有用户（包括未经过身份验证的用户）都可以读取它。通常我们约定，将整个集群中公用的可见和可读的资源放在这个空间中。
 - `kube-node-lease` 租约（Lease）对象使用的命名空间。每个节点都有一个关联的 lease 对象，lease 是一种轻量级资源。lease对象通过发送心跳，检测集群中的每个节点是否发生故障
 
-## ConfigMap 配置管理
+## 七、ConfigMap 配置管理
 
 工作中，在几乎所有的应用开发中，都会涉及到配置文件的变更，比如服务需要配置GreatSQL相关信息。而业务上线一般要经历开发环境、测试环境、预发布环境只到最终的线上环境，每一个环境一般都需要其独立的配置。如果我们不能很好的管理这些配置文件，运维工作将顿时变的无比的繁琐而且很容易出错。工作中最佳实践是将应用所需的配置信息于程序进行分离，这样可以使得应用程序被更好的复用，如将应用打包为容器镜像后，可以通过环境变量或外挂文件的方式在创建容器时进行配置注入。我们可以使用如nacos这样的配置管理中心，kubernetes自身也提供了自己的一套方案，即ConfigMap，来实现对容器中应用的配置管理。
 
@@ -160,7 +160,16 @@ ConfigMap 是一种 API 对象，用来将非机密性的数据保存到键值�
 
 ConfigMap 是一个让你可以存储其他对象所需要使用的配置的 API 对象。 和其他 Kubernetes 对象都有一个 `spec` 不同的是，ConfigMap 使用 `data` 和 `binaryData` 字段。这些字段能够接收键-值对作为其取值。`data` 和 `binaryData` 字段都是可选的。`data` 字段设计用来保存 UTF-8 字符串，而 `binaryData` 则被设计用来保存二进制数据作为 base64 编码的字串。
 
+## 参考资料
+
+- [Docker与Kubernetes容器运维实战](https://baike.baidu.com/item/Docker与Kubernetes容器运维实战/63475077?fr=ge_ala)
+
+## 免责声明
+
+因个人水平有限，专栏中难免存在错漏之处，请勿直接复制文档中的命令、方法直接应用于线上生产环境。请读者们务必先充分理解并在测试环境验证通过后方可正式实施，避免造成生产环境的破坏或损害。
+
 ## 联系我们
+
 ---
 扫码关注微信公众号
 
