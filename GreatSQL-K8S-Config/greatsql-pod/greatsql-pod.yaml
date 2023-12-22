@@ -1,0 +1,81 @@
+apiVersion: v1 # api文档版本
+kind: Pod # 资源对象类型、可以配置为Deployment、StatefulSet这一类的对象
+metadata: # Pod 相关的元数据信息，用于描述Pod的数据
+  name: greatsql-pod # Pod的名称
+  labels: #定义Pod的标签
+    type: app # 定义Pod 标签
+    version: GreatSQL8.0.32-24 # 自定义Pod版本号
+  namespace: "default" #命名空间的配置
+spec: #期望Pod 按照里面的描述进行创建
+  containers:
+    - name: greatsql # 容器的名称
+      image: greatsql/greatsql:8.0.32-24 # 指定容器的镜像
+      imagePullPolicy: IfNotPresent # 定义镜像拉取策略，有Always、Never、IfNotPresent
+      ports:
+        - name: greatsql # 端口名称
+          containerPort: 3306 # 暴露端口
+          protocol: TCP # 基于哪种协议通讯
+      env: # 环境变量
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD # 设置环境变量名称，此处设置GreatSQL密码为空
+          value: "1" # 环境变量值
+        #- name: MYSQL_ROOT_PASSWORD 若要设置密码使用这两条
+        #value: "123456" 设置GreatSQL的密码
+      volumeMounts:
+        - mountPath: /data/GreatSQL
+          name: data-volume
+        # - mountPath: /etc/mysql
+        #   name: conf-volume
+        #   readOnly: true
+        - mountPath: /etc/my.cnf
+          name: conf-volume
+          readOnly: true
+          subPath: my.cnf
+  volumes:
+    - name: conf-volume
+      configMap:
+        name: greatsql-config
+        items:
+          - key: my.cnf
+            mode: 0644
+            path: my.cnf
+    - name: data-volume
+      hostPath:
+        path: /data/GreatSQL # 宿主上目录位置
+        type: DirectoryOrCreate # 此字段为可选
+  nodeSelector: #把此Pod部署到指定的node标签上
+    kubernetes.io/hostname: node1
+  restartPolicy: OnFailure # 重启策略，有Always、OnFailure、Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: greatsql-config
+data:
+  my.cnf: |
+    [client]
+    socket    = /data/GreatSQL/mysql.sock
+    [mysql]
+    loose-skip-binary-as-hex
+    prompt    = "(\\D)[\\u@GreatSQL][\\d]> "
+    no-auto-rehash
+    [mysqld]
+    user      = mysql
+    port      = 3306
+    server_id = 33066
+    datadir   = /data/GreatSQL
+    socket    = /data/GreatSQL/mysql.sock
+    pid-file  = mysql.pid
+    log_error = /data/GreatSQL/error.log
+    character-set-server = UTF8MB4
+    skip_name_resolve = 1
+    # 若你的GreatSQL数据库主要运行在境外,请务必根据实际情况调整本参数
+    default_time_zone = "+8:00"
+    # innodb settings
+    innodb_buffer_pool_size  = 256M
+    innodb_buffer_pool_instances = 8
+    innodb_data_file_path = ibdata1:12M:autoextend
+    innodb_flush_log_at_trx_commit = 1
+    innodb_log_buffer_size   = 32M
+    innodb_doublewrite_files = 2
+    innodb_max_undo_log_size = 4G
+    # 本文只提供几个参数示例，可自行配置更多参数

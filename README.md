@@ -25,9 +25,10 @@
 ## 关于GreatSQL
 
 ---
-GreatSQL是适用于金融级应用的国内自主开源数据库，具备高性能、高可靠、高易用性、高安全等多个核心特性，可以作为MySQL或Percona Server的可选替换，用于线上生产环境，且完全免费并兼容MySQL或Percona Server。
+GreatSQL数据库是一款**开源免费**数据库，可在普通硬件上满足金融级应用场景，具有**高可用**、**高性能**、**高兼容**、**高安全**等特性，可作为MySQL或Percona Server for MySQL的理想可选替换。
 
-GreatSQL具备**高性能、高可靠、高易用性、高安全**等多个核心特性。
+- [GreatSQL用户手册](https://gitee.com/GreatSQL/GreatSQL-Manual)
+- [GreatSQL社区官网](https://greatsql.cn/)
 
 ## 关于Kubernetes
 ---
@@ -59,12 +60,23 @@ Kubernetes有助于实现容器化应用的高可用性、扩展性和声明式�
 - [Kubernetes搭建GreatSQL主从复制（多StatefulSet）]()
 - [Kubernetes搭建GreatSQL主从复制（单StatefulSet）]()
 
-## 配置脚本
+## Kubernetes脚本
 ---
-鉴于Kubernetes系统中涉及的资源种类繁多,各种资源对象的字段详细程度差异较大,这给平时的管理监控带来了一定的操作负担。专门编写一份通用的资源查询脚本，将频繁使用的查询命令进行了封装。
-- [Kubernetes脚本介绍](./GreatSQL-K8S-Shell/README.md)
+鉴于Kubernetes系统中涉及的资源种类繁多,各种资源对象的字段详细程度差异较大,这给平时的管理监控带来了一定的操作负担。专门编写一些通用的脚本，将频繁使用的查询命令进行了封装。
+- [Kubernetes相关脚本介绍](./GreatSQL-K8S-Shell/README.md)
+
+## Kubernetes资源对象
+
+---
+
+Kubernetes系统中承载着多种核心资源对象,如PV、PVC、Secret、StatefulSet、ConfigMap等。鉴于这些Yaml格式的定义文件语法灵活,但透露着天然的易错属性。所以我们引导标准化,确保配置一致性,抵御低级错误。
+
+因此,所有资源清单将集中存放于文件夹GreatSQL-K8S-Config内。这一举措将有效减少由于手工操作或拷贝引入的偶发格式错误。
+
+- [Kubernetes相关资源对象介绍](./GreatSQL-K8S-Config/README.md)
 
 ## 已知问题和解决方案
+
 ---
 暂无
 

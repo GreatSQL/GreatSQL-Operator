@@ -22,13 +22,35 @@
 ### [第三章 安装部署Kubernetes](./deep-dive-kubernetes-03.md)
 
 - 1.环境配置
-
 - 2.安装Docker
 - 3.安装Kubernetes组件
 - 4.集群初始化
 - 5.Node节点加入集群
 - 6.检查集群情况
 - 7.问题汇总
+
+## [第四章 Kubernetes命令行工具](./deep-dive-kubernetes-04.md)
+
+- 1.Kubectl 用法概述
+- 2.Kubectl 子命令
+- 3.Kubectl 操作例子
+
+## [第五章 Kubernetes中的Pod](./deep-dive-kubernetes-05.md)
+
+- 1.Pod 简介
+- 2.Pod 运行
+- 3.GreatSQL-Pod 尝试运行 
+- 4.Pod 的几种状态
+- 5.Pod 错误原因及排查
+
+## [第六章 Kubernetes中的卷](./deep-dive-kubernetes-06.md)
+
+- 1.卷的简介
+- 2.临时卷
+- 3.持久卷
+- 4.持久卷（PV）和持久卷声明（PVC）
+- 5.创建持久卷
+- 6.NFS卷
 
 
 ## 参考资料、文档

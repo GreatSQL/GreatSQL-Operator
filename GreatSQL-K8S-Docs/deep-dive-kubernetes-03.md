@@ -9,7 +9,7 @@
 | Docker     | V20.10.9   | 1.23最高兼容20.10版本 |
 | GreatSQL   | V8.0.32-24 |                       |
 
-> 请不要安装1.24版本以上的Kubernetes，否则不兼容Docker
+> 请不要安装1.24版本以上的 Kubernetes，否则不兼容 Docker
 
 **Kubernetes架构规划**
 
@@ -31,7 +31,7 @@ $ cat /etc/redhat-release
 CentOS Linux release 7.6.1810 (Core) 
 ```
 
-### 1.1 配置yum源
+### 1.1 配置Yum源
 
 安装wget
 
@@ -39,13 +39,13 @@ CentOS Linux release 7.6.1810 (Core)
 $ yum install wget
 ```
 
-进入yum源目录
+进入Yum源目录
 
 ```bash
 $ cd /etc/yum.repos.d/
 ```
 
-备份之前yum源
+备份之前Yum源
 
 ```bash
 $ mkdir repo_bak
@@ -59,7 +59,7 @@ $ wget http://mirrors.aliyun.com/repo/Centos-7.repo
 $ wget http://mirrors.163.com/.help/CentOS7-Base-163.repo
 ```
 
-清理并生成新的yum缓存
+清理并生成新的Yum缓存
 
 ```bash
 $ yum clean all
@@ -68,13 +68,13 @@ $ yum makecache
 
 ### 1.2 配置防火墙
 
-因为`Kubernetes`和`docker`在运行的中会产生大量的`iptables`规则，为了不让系统规则跟它们混淆，直接关闭系统的规则
+因为 Kubernetes 和 Docker 在运行的中会产生大量的 iptables 规则，为了不让系统规则跟它们混淆，直接关闭系统的规则
 
 ```sql
 $ systemctl stop firewalld;systemctl disable firewalld
 ```
 
-配置Iptables防火墙来允许Linux系统的数据包转发，配置成ACCEPT表示允许所有数据包的转发
+配置 Iptables防火墙 来允许 Linux系统 的数据包转发，配置成 ACCEPT 表示允许所有数据包的转发
 
 ```bash
 $ iptables -P FORWARD ACCEPT
@@ -82,7 +82,7 @@ $ iptables -P FORWARD ACCEPT
 
 ### 1.3 主机名解析
 
-为了方便集群节点间的直接调用，配置一下主机名解析，企业中推荐使用内部DNS服务器
+为了方便集群节点间的直接调用，配置一下主机名解析，企业中推荐使用 内部DNS 服务器
 
 ```bash
 $ vim /etc/hosts
@@ -92,7 +92,7 @@ $ vim /etc/hosts
 192.168.139.104 node2
 ```
 
-并设置三台台主机的hostname
+并设置三台台主机的 hostname
 
 ```bash
 # master节点上操作
@@ -108,9 +108,9 @@ node2
 
 ### 1.4 时间同步
 
-因为Kubernetes要求在集群中的节点时间必须精准，这里使用`chronyd`服务从网络同步时间
+因为 Kubernetes 要求在集群中的节点时间必须精准，这里使用 chronyd 服务从网络同步时间
 
-> `chronyd`是一个用于时间同步的守护进程，通常用于 Linux 操作系统中，它的主要功能是确保计算机系统的时间保持准确和同步
+> chronyd 是一个用于时间同步的守护进程，通常用于 Linux 操作系统中，它的主要功能是确保计算机系统的时间保持准确和同步
 
 ```bash
 $ systemctl start chronyd
@@ -119,23 +119,23 @@ $ systemctl enable chronyd
 
 ### 1.5 禁用SELinux
 
-尽管SELinux在很大程度上可以加强Linux的安全性，但是会影响Kubernetes某些组件的功能，所以需要将其禁用
+尽管 SELinux 在很大程度上可以加强 Linux 的安全性，但是会影响 Kubernetes 某些组件的功能，所以需要将其禁用
 
 ```bash
 $ setenforce 0 ; sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
 ```
 
-SELinux的模式有三种：
+SELinux 的模式有三种：
 
-- enforcing模式:SELinux完全启用,安全策略会被强制执行。
-- permissive模式:SELinux启用但不强制执行策略,只生成警告日志。
-- disabled模式:完全禁用SELinux,不加载安全策略,等同于关闭 SELinux。
+- enforcing模式：SELinux 完全启用,安全策略会被强制执行
+- permissive模式：SELinux 启用但不强制执行策略,只生成警告日志
+- disabled模式：完全禁用 SELinux，不加载安全策略，等同于关闭 SELinux
 
-> 这里将SELinux修改为permissive模式，一般建议只在特殊情况下使用disabled,长期关闭SELinux会减少系统安全性
+> 此处将 SELinux 修改为 permissive 模式。建议只在特殊情况下使用 disabled，长期关闭 SELinux 会减少系统安全性
 
-### 1.6 禁用swap分区
+### 1.6 禁用Swap分区
 
-swap分区指的是虚拟内存分区，它的作用是物理内存使用完，之后将磁盘空间虚拟成内存来使用，启用swap设备会对系统的性能产生非常负面的影响，因此Kubernetes要求每个节点都要禁用swap设备，但是如果因为某些原因确实不能关闭swap分区，就需要在集群安装过程中通过明确的参数进行配置说明
+Swap分区 指的是虚拟内存分区，它的作用是物理内存使用完，之后将磁盘空间虚拟成内存来使用，启用 Swap设备 会对系统的性能产生非常负面的影响，因此 Kubernetes 要求每个节点都要禁用 Swap设备，但是如果因为某些原因确实不能关闭 Swap分区，就需要在集群安装过程中通过明确的参数进行配置说明
 
 ```bash
 $ swapoff -a; sed -i 's/^\(.*swap.*\)$/#\1/' /etc/fstab
@@ -143,7 +143,7 @@ $ swapoff -a; sed -i 's/^\(.*swap.*\)$/#\1/' /etc/fstab
 
 ### 1.7 修改内核参数
 
-修改Linux的内核参数，在`/etc/sysctl.d/Kubernetes.conf`文件中写入如下配置
+修改 Linux 的内核参数，在`/etc/sysctl.d/Kubernetes.conf`文件中写入如下配置
 
 > 如果需要的话，可以根据自己的机器情况自行进行相应修改
 
@@ -166,18 +166,18 @@ net.ipv4.neigh.default.gc_thresh3 = 100000
 EOF
 ```
 
-- `net.bridge.bridge-nf-call-ip6tables`:为桥接流量开启 iptables 的 IPv6 过滤。
-- `net.bridge.bridge-nf-call-iptables`:为桥接流量开启 iptables 的 IPv4 过滤。
-- `net.bridge.bridge-nf-call-arptables`:为桥接流量开启 iptables 的 ARP 过滤。
-- `net.core.somaxconn`:增大 Linux 服务器端可监听队列的长度,以容纳更多等待连接的网络连接数。
-- `vm.swappiness`:设置 Linux 使用 swap 的优先级,设置为0表示最大限度使用物理内存,避免交换到 swap 空间。
-- `net.ipv4.tcp_syncookies`:开启 syn cookies 以防止 SYN 攻击。
-- `net.ipv4.ip_forward`:开启 IP 转发。
-- `fs.file-max`:增大系统的文件打开数的限制。
-- `fs.inotify.max_user_watches`:增大 inotify 可监控的文件数。
-- `fs.inotify.max_user_instances`:增大单个用户可创建的 inotify in stance 的数量。
-- `net.ipv4.conf.all.rp_filter`:反向路径过滤设置。
-- `net.ipv4.neigh.*`:调整 ARP 缓存参数。
+- net.bridge.bridge-nf-call-ip6tables：为桥接流量开启 iptables 的 IPv6 过滤
+- net.bridge.bridge-nf-call-iptables：为桥接流量开启 iptables 的 IPv4 过滤
+- net.bridge.bridge-nf-call-arptables：为桥接流量开启 iptables 的 ARP 过滤
+- net.core.somaxconn：增大 Linux 服务器端可监听队列的长度,以容纳更多等待连接的网络连接数
+- vm.swappiness：设置 Linux 使用 swap 的优先级,设置为0表示最大限度使用物理内存,避免交换到 swap 空间
+- net.ipv4.tcp_syncookies：开启 syn cookies 以防止 SYN 攻击
+- net.ipv4.ip_forward：开启 IP 转发
+- fs.file-max：增大系统的文件打开数的限制
+- fs.inotify.max_user_watches：增大 inotify 可监控的文件数
+- fs.inotify.max_user_instances：增大单个用户可创建的 inotify in stance 的数量
+- net.ipv4.conf.all.rp_filter：反向路径过滤设置
+- net.ipv4.neigh.*：调整 ARP 缓存参数
 
 ```bash
 # 重新加载配置
@@ -192,9 +192,9 @@ bridge                151336  1 br_netfilter
 
 ### 1.8 配置ipvs功能
 
-在Kubernetes中Service有两种带来模型，一种是基于iptables的，一种是基于ipvs的两者比较的话，ipvs的性能明显要高一些，但是如果要使用它，需要手动载入ipvs模块
+在 Kubernetes 中 Service 有两种带来模型，一种是基于 iptables 的，一种是基于 ipvs 的两者比较的话，ipvs 的性能明显要高一些，但是如果要使用它，需要手动载入 ipvs 模块
 
-安装ipset和ipvsadm
+安装 ipset 和 ipvsadm
 
 ```bash
 $ yum install ipset ipvsadm -y
@@ -236,7 +236,7 @@ libcrc32c              12644  4 xfs,ip_vs,nf_nat,nf_conntrack
 
 ## 二、安装Docker
 
-下载Docker的yum源,并清理生成新的yum缓存
+下载 Docker 的 Yum源，并清理生成新的 Yum缓存
 
 ```bash
 $ wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -O /etc/yum.repos.d/docker-ce.repo
@@ -244,21 +244,21 @@ $ yum clean all
 $ yum makecache
 ```
 
-查看Docker版本列表，建议选择版本20.10.9
+查看 Docker 版本列表，建议选择版本20.10.9
 
 ```bash
 $ yum list docker-ce --showduplicates | sort -r
 ```
 
-指定`20.10.9-3.el7`版本安装，其中el7指的是CentOS的版本
+指定`20.10.9-3.el7`版本安装，其中 el7 指的是 CentOS 的版本
 
-> Kubernetes对Docker版本有要求，所以请按照本文中版本安装，若想更改版本，要去查看对应版本信息
+> Kubernetes 对 Docker 版本有要求，所以请按照本文中版本安装，若想更改版本，要去查看对应版本信息
 
 ```bash
 $ yum install -y docker-ce-20.10.9-3.el7 docker-ce-cli-20.10.9-3.el7 containerd.io docker-compose-plugin
 ```
 
-启动Docker并验证版本
+启动 Docker 并验证版本
 
 ```bash
 $ systemctl start docker
@@ -274,7 +274,7 @@ $ systemctl enable docker
 
 ## 三、安装Kubernetes组件
 
-由于Kubernetes的镜像在国外，速度比较慢，这里切换成国内的镜像源
+由于 Kubernetes 的镜像在国外，速度比较慢，这里切换成国内的镜像源
 
 编辑`/etc/yum.repos.d/Kubernetes.repo`,添加下面的配置
 
@@ -291,7 +291,7 @@ gpgkey=https://mirrors.aliyun.com/Kubernetes/yum/doc/yum-key.gpg
 EOF
 ```
 
-安装Kubeadm、Kubelet和Kubectl
+安装 Kubeadm、Kubelet 和 Kubectl
 
 > 建议v1.23即可，请注意大于1.24版本不支持Docker！
 
@@ -299,7 +299,7 @@ EOF
 $ yum install --setopt=obsoletes=0 kubeadm-1.23.6 kubelet-1.23.6 kubectl-1.23.6 -y
 ```
 
-配置Kubelet的cgroup和kube-proxy的模式，优化Kubelet和kube-proxy在CentOS环境下的组件行为,提高稳定性和效率。
+配置 Kubelet 的 cgroup 和 kube-proxy 的模式，优化 Kubelet 和 kube-proxy 在 CentOS 环境下的组件行为，提高稳定性和效率。
 
 ```bash
 $ vim /etc/sysconfig/kubelet
@@ -308,13 +308,13 @@ KUBELET_CGROUP_ARGS="--cgroup-driver=systemd"
 KUBE_PROXY_MODE="ipvs"
 ```
 
-其中`KUBELET_EXTRA_ARGS`是用来指定Kubelet的额外命令行参数，暂时不用配置
+其中 KUBELET_EXTRA_ARGS 是用来指定 Kubelet 的额外命令行参数，暂时不用配置
 
 设置开机自启`$ systemctl enable kubelet`
 
 ## 四、集群初始化
 
-> 此操作只在Master节点上执行即可，请自行修改下方参数
+> 此操作只在 Master 节点上执行即可，请自行修改下方参数
 
 ```bash
 $ kubeadm init \
@@ -345,7 +345,7 @@ kubeadm join 192.168.139.120:6443 --token j32p61.gur3ktnazmmyy1od \
         --discovery-token-ca-cert-hash sha256:c78a7421beeece067e696d09fb488deb77e96c5a63c266bc6ca4de7b25617dbf 
 ```
 
-创建完成后要看下kubelet的状态
+创建完成后要看下 Kubelet 的状态
 
 ```bash
 $ systemctl status kublet
@@ -381,9 +381,9 @@ kube-scheduler-master                      1/1     Running   4 (9d ago)      9d
 
 ## 五、Node节点加入集群
 
-> 以下操作只在node节点执行
+> 以下操作只在 Node 节点执行
 
-在初始化完成Master节点的时候屏幕会输出以下内容
+在初始化完成 Master 节点的时候屏幕会输出以下内容
 
 ```bash
 Then you can join any number of worker nodes by running the following on each as root:
@@ -391,11 +391,11 @@ kubeadm join 192.168.139.120:6443 --token j32p61.gur3ktnazmmyy1od \
         --discovery-token-ca-cert-hash sha256:c78a7421beeece067e696d09fb488deb77e96c5a63c266bc6ca4de7b25617dbf 
 ```
 
-直接在两个node节点上执行即可加入集群，如果不小心清空了，请看七、已知问题和解决方案
+直接在两个 Node 节点上执行即可加入集群，如果不小心清空了，请往下滑>>>七、已知问题和解决方案
 
 ## 六、检查集群情况
 
-执行`kubectl get no`，三个节点已经加入完毕，并且都是Ready状态
+执行`$ kubectl get no`，三个节点已经加入完毕，并且都是Ready状态
 
 ```bash
 $ kubectl get no
@@ -405,7 +405,7 @@ node1    Ready    <none>                 14m   v1.23.6
 node2    Ready    <none>                 97s   v1.23.6
 ```
 
-执行`kubectl get pods -n kube-system `，检查Kubernetes集群的系统Pod状态，确保所有系统Pod运行正常。
+执行`$ kubectl get pods -n kube-system `，检查 Kubernetes 集群的系统 Pod 状态，确保所有系统 Pod 运行正常。
 
 ```bash
 $ kubectl get pods -n kube-system 
@@ -425,11 +425,11 @@ kube-proxy-rk5df                           1/1     Running   2 (9d ago)      9d
 kube-scheduler-master                      1/1     Running   4 (9d ago)      9d
 ```
 
-至此,Kubernetes集群的搭建完成。
+至此，Kubernetes 集群的搭建完成！
 
 ## 七、已知问题和解决方案
 
-> 搭建Kubernetes集群出现报错请看此章节内容
+> 搭建 Kubernetes 集群出现报错请看此章节内容
 
 ### 7.1 CRI连接失败
 
@@ -440,7 +440,7 @@ kube-scheduler-master                      1/1     Running   4 (9d ago)      9d
 , error: exit status 1
 ```
 
-由于CRI(Container Runtime Interface)运行时出现连接失败导致的，此时我们对 **三个节点** 做如下操作
+由于 CRI(Container Runtime Interface) 运行时出现连接失败导致的，此时我们对 **三个节点** 做如下操作
 
 ```bash
 $ rm /etc/containerd/config.toml 
@@ -482,7 +482,7 @@ k8s.gcr.io/coredns/coredns:v1.8.6
 可以使用该脚本拉取Docker镜像，并标签修改为所需的前缀，即`k8s.gcr.io/`
 
 - [点击查看 拉取Pause镜像脚本](../GreatSQL-K8S-Shell/k8s_images_pull.sh)
-- [所有脚本介绍](../GreatSQL-K8S-Shell/README.md)
+- [所有脚本详情介绍](../GreatSQL-K8S-Shell/README.md)
 
 下载或复制脚本内容到`/usr/local/`目录，授权并运行`k8s_images_pull.sh`脚本
 
@@ -491,9 +491,9 @@ $ chmod 755 /usr/local/k8s_images_pull.sh
 $ /usr/local/k8s_images_pull.sh
 ```
 
-之后Master节点先执行`reset`重置安装的Kubernetes集群
+之后 Master节点 先执行`reset`重置安装的 Kubernetes 集群
 
-Master节点再次执行安装
+Master节点 再次执行安装
 
 ```bash
 $ kubeadm init \
@@ -546,7 +546,7 @@ $ kubeadm init \
 
 ### 7.4 NotReady状态
 
-虽然前面`kubeadm init`没报错，但是`$ kubectl get no`发现状态是NotReady
+虽然前面`$ kubeadm init`没报错，但是`$ kubectl get no`发现状态是NotReady
 
 ```bash
 $ kubectl get no
@@ -554,9 +554,7 @@ NAME     STATUS     ROLES                  AGE   VERSION
 master   NotReady   control-plane,master   48m   v1.23.6
 ```
 
-发现有报错查看`journalctl -f -u kubelet`
-
-报错信息如下
+发现有报错查看`$ journalctl -f -u kubelet`报错信息如下
 
 ```bash
 Sep 28 14:32:59 master kubelet: I0928 14:32:59.728045   19066 cni.go:240] "Unable to update cni config" err="no valid networks found in /etc/cni/net.d"
@@ -587,13 +585,13 @@ EOF
 
 但这样还是没有转为`Ready`的状态
 
-于是我们去`/opt/cni/bin`目录下，结果发现没有flannel文件，一般安装网络插件flannel后，会自动生成该flannel文件
+于是我们去`/opt/cni/bin`目录下，结果发现没有 flannel 文件，一般安装网络插件 flannel 后，会自动生成该 flannel 文件
 
 去Github下载 https://github.com/containernetworking/plugins/releases/tag/v0.8.6
 
 > (在1.0.0版本后CNI Plugins中没有flannel)
 
-解压后复制`flannel`文件到`/opt/cni/bin/`目录下，过一会儿节点状态就变为Ready了
+解压后复制 flannel 文件到`/opt/cni/bin/`目录下，过一会儿节点状态就变为Ready了
 
 ```bash
 $ kubectl get no
@@ -665,7 +663,7 @@ $ grep image calico.yaml
 $ sed -i 's#docker.io/##g' calico.yaml
 ```
 
-在执行下`grep image calico.yaml`
+在执行下`$ grep image calico.yaml`
 
 ```bash
 $ grep image calico.yaml
@@ -687,7 +685,7 @@ $ grep image calico.yaml
 $ kubectl apply -f calico.yaml
 ```
 
-如果还有pod显示`0/1`状态，使用`kubectl delete pod 名称 -n kube-system`删除pod,将重建pod，接下来就一切正常了
+如果还有 Pod 显示 0/1 状态，使用`kubectl delete pod 名称 -n kube-system`删除 Pod，将重建 Pod，接下来就一切正常了
 
 ```bash
 $ kubectl get pod -n kube-system
@@ -709,7 +707,7 @@ kube-scheduler-master                      1/1     Running   4 (9d ago)      9d
 
 ### 7.5 找不到Node节点加入Master节点命令
 
-Node节点加入集群格式为
+Node节点 加入集群格式为
 
 ```bash
 kubeadm join <master节点IP:6443> --token <mster的token> \
@@ -718,7 +716,7 @@ kubeadm join <master节点IP:6443> --token <mster的token> \
 
 **获取Token值**
 
-再初始化master节点的时候会出现token的信息，如果不小心清空了记录，可以用以下方式获取或者重新申请
+再初始化 Master节点 的时候会出现 token 的信息，如果不小心清空了记录，可以用以下方式获取或者重新申请
 
 ```bash
 # 获取token
@@ -746,7 +744,7 @@ $ kbueadm token create
 
 **获取--discovery-token-ca-cert-hash**
 
-ssh证书的一个hash值，得到该值后需要在后面拼接上sha256
+SSH证书的一个 Hash值，得到该值后需要在后面拼接上sha256
 
 ```bash
 $ openssl x509 -pubkey -in /etc/Kubernetes/pki/ca.crt | opensslrsa -pubin -outform der 2>/dev/null |\openssl dgst -sha256 -hex | sed 's/^.* //'
@@ -774,7 +772,7 @@ error execution phase preflight: couldn't validate the identity of the API Serve
 
 那就直接用它提到的`sha256:4c792bb10c52ddcaa78044f97d4d5325a269363b1e51ec85c2829683c1d6c4ef`替换即可
 
-> 不要清屏最方便 :）
+> 注意不要清屏最方便 :）
 
 ## 参考资料
 
