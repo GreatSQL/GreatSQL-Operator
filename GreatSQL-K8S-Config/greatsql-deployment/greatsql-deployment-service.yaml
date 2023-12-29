@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: greatsql-sv
+spec:
+  ports:
+  - port: 9000
+    protocol: TCP
+    targetPort: 3306
+    nodePort: 31090
+  selector:
+    app: greatsql
+  type: NodePort

@@ -52,6 +52,25 @@
 - 5.创建持久卷
 - 6.NFS卷
 
+## [第七章 Kubernetes中的服务](./deep-dive-kubernetes-07.md)
+
+- 1.服务的基本概念
+- 2.Service 的类型
+- 3.Headless Service
+- 4.如何选择合适的服务类型
+
+## [第八章 有状态与无状态应用](./deep-dive-kubernetes-08.md)
+
+- 1.有状态与无状态应用的基本概念
+- 2.无状态应用
+- 3.有状态应用
+- 4.有状态与无状态应用区别
+
+## [第九章 Kubernetes中的Deployment](./deep-dive-kubernetes-09.md)
+- 1.什么是 Deployment
+- 2.Deployment 基本概念
+- 3.部署单实例无状态 GreatSQL
+- 4.测试GreatSQL Pod
 
 ## 参考资料、文档
 

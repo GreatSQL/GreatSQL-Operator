@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: greatsql
+  labels:
+    type: app
+    version: GreatSQL8.0.32-24
+spec:
+  selector:
+    matchLabels:
+      app: greatsql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: greatsql
+    spec:
+      containers:
+        - image: greatsql/greatsql:8.0.32-24
+          name: greatsql
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "greatsql"
+          ports:
+            - containerPort: 3306
+              name: greatsql
+          volumeMounts:
+            - name: greatsql-persistent-storage
+              mountPath: /data/GreatSQL
+            - mountPath: /etc/mysql
+              name: conf-volume
+              readOnly: true
+      volumes:
+        - name: conf-volume
+          configMap:
+            name: greatsql-config
+            items:
+              - key: my.cnf
+                mode: 0644
+                path: my.cnf
+        - name: greatsql-persistent-storage
+          persistentVolumeClaim:
+            claimName: greatsql-pv-claim

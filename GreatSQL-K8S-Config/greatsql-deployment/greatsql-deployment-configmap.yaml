@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: greatsql-config
+data:
+  my.cnf: |
+    [mysql]
+    loose-skip-binary-as-hex
+    prompt="(\\D)[\\u@GreatSQL][\\d]> "
+    no-auto-rehash
+    [mysqld]
+    character-set-server = UTF8MB4
+    skip_name_resolve = 1
+    # 若你的GreatSQL数据库主要运行在境外,请务必根据实际情况调整本参数
+    default_time_zone = "+8:00"
+    innodb_buffer_pool_size = 128M
+    innodb_buffer_pool_instances = 8
+    innodb_data_file_path = ibdata1:12M:autoextend
+    innodb_flush_log_at_trx_commit = 1
+    innodb_log_buffer_size = 32M
+    innodb_doublewrite_files = 2
+    innodb_max_undo_log_size = 4G
+    # 可自行继续添加

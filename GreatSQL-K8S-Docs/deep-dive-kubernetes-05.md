@@ -47,8 +47,8 @@ $ cd /opt/k8s/greatsql
 ```bash
 $ vim /opt/k8s/greatsql/greatsql-pod.yaml
 ```
-因代码篇幅过长，将配置yaml存放到GreatSQL-K8S-Config/greatsql-deployment目录下
-- [点击此处查看greatsql-pod.yaml](../GreatSQL-K8S-Config/greatsql-deployment/greatsql-pod.yaml)
+因代码篇幅过长，将配置yaml存放到GreatSQL-K8S-Config/greatsql-pod目录下
+- [点击此处查看greatsql-pod.yaml](../GreatSQL-K8S-Config/greatsql-pod/greatsql-pod.yaml)
 
 镜像拉取策略，有Always、Never、IfNotPresent
 
@@ -70,7 +70,7 @@ hostPath的type值
 - OnFailure:只有Pod以非零退出码终止时，kubelet才会重启它，如果正常退出，则kubelet不会重启
 - Never:Pod终止后，kubelet将退出码报告master，不会重启该Pod
 
-下载或复制 [greatsql-pod.yaml](../GreatSQL-K8S-Config/greatsql-deployment/greatsql-deployment.yaml) 内容后使用`kubectl apply -f`使文件创建并生效
+下载或复制 [greatsql-pod.yaml](../GreatSQL-K8S-Config/greatsql-pod/greatsql-pod.yaml) 内容后使用`kubectl apply -f`使文件创建并生效
 ```bash
 $ kubectl apply -f /opt/k8s/greatsql/greatsql-pod.yaml
 pod/greatsql-pod created
