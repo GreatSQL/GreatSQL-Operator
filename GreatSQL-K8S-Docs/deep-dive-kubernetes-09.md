@@ -1,5 +1,5 @@
 
-# 第七章 Deployment 介绍
+# 第九章 Kubernetes中的Deployment
 
 ## 一、什么是 Deployment
 Deployment提供了一种更简单的方式来更新Replica Set和Pod，以更好地解决Pod编排的问题。
@@ -218,6 +218,7 @@ Threads: 2  Questions: 8  Slow queries: 0  Opens: 118  Flush tables: 3  Open tab
 --------------
 ```
 也可以使用第三方工具连接GreatSQL
+
 ![Alt text](./09-1.png)
 
 ## 四、测试GreatSQL Pod

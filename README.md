@@ -2,8 +2,8 @@
 [![](https://img.shields.io/badge/GreatSQL-论坛-brightgreen.svg)](https://greatsql.cn/forum.php)
 [![](https://img.shields.io/badge/GreatSQL-博客-brightgreen.svg)](https://greatsql.cn/home.php?mod=space&uid=10&do=blog&view=me&from=space)
 
-# GreatSQL 部署 Kubernetes 操作手册
-最后更新：2023-12-30
+# GreatSQL 部署 Kubernetes 用户手册
+最后更新：2024-2-7
 
 ## 前置条件
 ---
@@ -16,7 +16,7 @@
 
 > 请严格按照手册指定版本安装部署，避免出现不兼容等情况
 
-全文代码符号介绍：
+全文符号介绍：
 
 - `$` 此符号为在命令行窗口中执行
 
@@ -78,7 +78,8 @@ Kubernetes系统中承载着多种核心资源对象,如PV、PVC、Secret、Stat
 ## 已知问题和解决方案
 
 ---
-暂无
+- Kubernetes 1.24版本废除Docker支持
+- Kubernetes 1.23最高兼容 Docker 20.10 版本
 
 ## 联系我们
 ---

@@ -72,6 +72,12 @@
 - 3.部署单实例无状态 GreatSQL
 - 4.测试GreatSQL Pod
 
+## [第十章 部署多StatefulSet的主从复制](./deep-dive-kubernetes-10.md)
+- 1.
+- 2.
+- 3.
+- 4.
+
 ## 参考资料、文档
 
 - [Docker与Kubernetes容器运维实战](https://baike.baidu.com/item/Docker与Kubernetes容器运维实战/63475077?fr=ge_ala)
