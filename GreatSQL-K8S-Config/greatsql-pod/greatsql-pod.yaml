@@ -4,12 +4,12 @@ metadata: # Pod 相关的元数据信息，用于描述Pod的数据
   name: greatsql-pod # Pod的名称
   labels: #定义Pod的标签
     type: app # 定义Pod 标签
-    version: GreatSQL8.0.32-24 # 自定义Pod版本号
+    version: GreatSQL8.0.32-25 # 自定义Pod版本号
   namespace: "default" #命名空间的配置
 spec: #期望Pod 按照里面的描述进行创建
   containers:
     - name: greatsql # 容器的名称
-      image: greatsql/greatsql:8.0.32-24 # 指定容器的镜像
+      image: greatsql/greatsql:8.0.32-25 # 指定容器的镜像
       imagePullPolicy: IfNotPresent # 定义镜像拉取策略，有Always、Never、IfNotPresent
       ports:
         - name: greatsql # 端口名称
@@ -23,9 +23,6 @@ spec: #期望Pod 按照里面的描述进行创建
       volumeMounts:
         - mountPath: /data/GreatSQL
           name: data-volume
-        # - mountPath: /etc/mysql
-        #   name: conf-volume
-        #   readOnly: true
         - mountPath: /etc/my.cnf
           name: conf-volume
           readOnly: true

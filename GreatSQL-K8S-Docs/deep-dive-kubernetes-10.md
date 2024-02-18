@@ -27,7 +27,7 @@ kubernetes & Docker & GreatSQL 版本选择
 | ---------- | ---------- | --------------------- |
 | kubernetes | V1.23.6    | 1.24版本废除Docker    |
 | Docker     | V20.10.9   | 1.23最高兼容20.10版本 |
-| GreatSQL   | V8.0.32-24 |                       |
+| GreatSQL   | V8.0.32-25 |                       |
 
 Kubernetes集群架构规划
 
@@ -245,7 +245,7 @@ persistentvolumeclaim/deploy-greatsql-master-nfs-pvc	Bound
 
 ### 创建Master节点cnf
 
-首先我们需要准备一个cnf文件，可以参考GreatSQL社区的my.cnf推荐 https://gitee.com/GreatSQL/GreatSQL-Doc/blob/master/docs/my.cnf-example-greatsql-8.0.32-24
+首先我们需要准备一个cnf文件，可以参考GreatSQL社区的my.cnf推荐 https://gitee.com/GreatSQL/GreatSQL-Doc/blob/master/docs/my.cnf-example-greatsql-8.0.32-25
 
 这里就采用极简配置，配置几个必要参数
 
@@ -382,7 +382,7 @@ spec:
         - --lower_case_table_names=1
         - --default-time_zone=+8:00
         name: greatsql
-        image: greatsql/greatsql:8.0.32-24
+        image: greatsql/greatsql:8.0.32-25
         ports:
         - containerPort: 3306
           name: greatsql
@@ -453,7 +453,7 @@ $ kubectl exec -it deploy-greatsql-master-0 -n deploy-greatsql -- bash -c "mysql
 Enter password:  # 这里输入密码
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 Your MySQL connection id is 10
-Server version: 8.0.32-24 GreatSQL (GPL), Release 24, Revision c2e83f27394
+Server version: 8.0.32-25 GreatSQL (GPL), Release 25, Revision c2e83f27394
 
 greatsql> show global variables like "server_id"; # 查看下server_id是否为1
 +---------------+-------+
@@ -639,7 +639,7 @@ spec:
             - --lower_case_table_names=1
             - --default-time_zone=+8:00
           name: greatsql
-          image: greatsql/greatsql:8.0.32-24
+          image: greatsql/greatsql:8.0.32-25
           ports:
             - containerPort: 3306
               name: greatsql
@@ -712,7 +712,7 @@ $ kubectl exec -it deploy-greatsql-slaver-01-0 -n deploy-greatsql -- bash -c "my
 Enter password:  # 这里输入密码
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 Your MySQL connection id is 10
-Server version: 8.0.32-24 GreatSQL (GPL), Release 24, Revision c2e83f27394
+Server version: 8.0.32-25 GreatSQL (GPL), Release 25, Revision c2e83f27394
 
 greatsql> show global variables like "server_id"; # 查看下server_id是否为2
 +---------------+-------+
@@ -813,7 +813,7 @@ spec:
             - --lower_case_table_names=1
             - --default-time_zone=+8:00
           name: greatsql
-          image: greatsql/greatsql:8.0.32-24
+          image: greatsql/greatsql:8.0.32-25
           ports:
             - containerPort: 3306
               name: greatsql
@@ -890,7 +890,7 @@ $ kubectl exec -it deploy-greatsql-master-0 -n deploy-greatsql -- bash -c "mysql
 Enter password:  # 这里输入密码
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 Your MySQL connection id is 10
-Server version: 8.0.32-24 GreatSQL (GPL), Release 24, Revision c2e83f27394
+Server version: 8.0.32-25 GreatSQL (GPL), Release 25, Revision c2e83f27394
 ```
 
 查看下Master节点binlog的位置

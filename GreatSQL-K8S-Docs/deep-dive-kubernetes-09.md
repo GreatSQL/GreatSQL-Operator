@@ -127,7 +127,7 @@ metadata:
   name: greatsql
   labels:
     type: app
-    version: GreatSQL8.0.32-24
+    version: GreatSQL8.0.32-25
 spec:
   selector:
     matchLabels:
@@ -140,7 +140,7 @@ spec:
         app: greatsql
     spec:
       containers:
-        - image: greatsql/greatsql:8.0.32-24
+        - image: greatsql/greatsql:8.0.32-25
           name: greatsql
           imagePullPolicy: IfNotPresent
           env:
@@ -193,18 +193,18 @@ $ kubectl exec -it greatsql-68dd978b97-b6f8s -- bash
 ```bash
 $ mysql -uroot -pgreatsql
 
-greatsql>\s       
+(Sun Feb 18 10:29:30 2024)[root@GreatSQL][(none)]> \s       
 --------------
-mysql  Ver 8.0.32-24 for Linux on x86_64 (GreatSQL (GPL), Release 24, Revision c2e83f27394)
+mysql  Ver 8.0.32-25 for Linux on x86_64 (GreatSQL (GPL), Release 25, Revision db07cc5cb73)
 
-Connection id:          9
+Connection id:          11
 Current database:       
 Current user:           root@localhost
 SSL:                    Not in use
 Current pager:          stdout
 Using outfile:          ''
 Using delimiter:        ;
-Server version:         8.0.32-24 GreatSQL (GPL), Release 24, Revision c2e83f27394
+Server version:         8.0.32-25 GreatSQL (GPL), Release 25, Revision db07cc5cb73
 Protocol version:       10
 Connection:             Localhost via UNIX socket
 Server characterset:    utf8mb4
@@ -212,9 +212,9 @@ Db     characterset:    utf8mb4
 Client characterset:    utf8mb4
 Conn.  characterset:    utf8mb4
 UNIX socket:            /data/GreatSQL/mysql.sock
-Uptime:                 6 min 3 sec
+Uptime:                 4 min 29 sec
 
-Threads: 2  Questions: 8  Slow queries: 0  Opens: 118  Flush tables: 3  Open tables: 35  Queries per second avg: 0.022
+Threads: 2  Questions: 18  Slow queries: 0  Opens: 698  Flush tables: 6  Open tables: 55  Queries per second avg: 0.066
 --------------
 ```
 也可以使用第三方工具连接GreatSQL

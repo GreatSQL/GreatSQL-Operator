@@ -4,7 +4,7 @@ metadata:
   name: greatsql
   labels:
     type: app
-    version: GreatSQL8.0.32-24
+    version: GreatSQL8.0.32-25
 spec:
   selector:
     matchLabels:
@@ -17,7 +17,7 @@ spec:
         app: greatsql
     spec:
       containers:
-        - image: greatsql/greatsql:8.0.32-24
+        - image: greatsql/greatsql:8.0.32-25
           name: greatsql
           imagePullPolicy: IfNotPresent
           env:
