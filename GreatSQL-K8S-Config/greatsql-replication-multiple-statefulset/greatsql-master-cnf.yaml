@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: greatsql-master-cnf
+  namespace: deploy-greatsql
+data:
+  my.cnf: | # 原本为greatsql-master.cnf，修改成my.cnf 方便后续定位
+    [client]
+    socket    = /data/GreatSQL/mysql.sock
+    [mysql]
+    prompt="(\\D)[\\u@GreatSQL][\\d]> "
+    [mysqld]
+    skip-host-cache
+    skip-name-resolve
+    datadir          = /data/GreatSQL
+    socket           = /data/GreatSQL/mysql.sock
+    log_error        = /data/GreatSQL/error.log
+    secure-file-priv = /var/lib/mysql-files
+    pid-file         = mysql.pid
+    user             = mysql
+    secure-file-priv = NULL
+    server-id        = 1
+    log-bin          = master-bin
+    log_bin_index    = master-bin.index
+    binlog-format    = ROW
+    

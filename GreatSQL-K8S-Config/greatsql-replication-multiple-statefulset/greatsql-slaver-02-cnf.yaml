@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: greatsql-slaver-02-cnf
+  namespace: deploy-greatsql
+data:
+  my.cnf: |
+    [client]
+    socket           = /data/GreatSQL/mysql.sock
+    [mysql]
+    prompt="(\\D)[\\u@GreatSQL][\\d]>"
+    [mysqld]
+    skip-host-cache
+    skip-name-resolve
+    datadir          = /data/GreatSQL
+    socket           = /data/GreatSQL/mysql.sock
+    log_error        = /data/GreatSQL/error.log
+    secure-file-priv = /var/lib/mysql-files
+    pid-file         = mysql.pid
+    user             = mysql
+    secure-file-priv = NULL
+    server-id        = 3   # server id,注意不同节点要不一样
+    log-bin          = slave-bin
+    relay-log        = slave-relay-bin
+    relay-log-index  = slave-bin.index

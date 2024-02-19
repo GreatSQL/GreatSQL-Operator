@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: deploy-greatsql-slaver-01
+  namespace: deploy-greatsql
+spec:
+  selector:
+    matchLabels:
+      app: greatsql-slaver
+  serviceName: "deploy-greatsql-slaver-svc"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: greatsql-slaver
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - args:
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_unicode_ci
+            - --lower_case_table_names=1
+            - --default-time_zone=+8:00
+          name: greatsql
+          image: greatsql/greatsql:8.0.32-25
+          ports:
+            - containerPort: 3306
+              name: greatsql
+          volumeMounts:
+            - name: greatsql-data
+              mountPath: /data/GreatSQL
+            - name: greatsql-conf
+              mountPath: /etc/my.cnf
+              readOnly: true
+              subPath: my.cnf
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PASSWORD
+                  name: greatsql-password
+                  optional: false
+      volumes:
+        - name: greatsql-data
+          persistentVolumeClaim:
+            claimName: deploy-greatsql-slaver-01-nfs-pvc
+        - name: greatsql-conf
+          configMap:
+            name: greatsql-slaver-01-cnf
+            items:
+              - key: my.cnf
+                mode: 0644
+                path: my.cnf

@@ -1,6 +1,6 @@
 # 第十章 部署多StatefulSet的主从复制
 
-本章介绍在Kubernetes集群中创建GreatSQL多StatefulSet方式，一个主节点以及两个从节点的部署架构，在Kubernetes中运行GreatSQL可以带来众多好处，如
+本章介绍在Kubernetes集群中创建 GreatSQL 多StatefulSet方式，一个主节点以及两个从节点的部署架构，在 Kubernetes 中运行 GreatSQL 可以带来众多好处，如
 
 - 资源隔离
 - 动态弹性扩缩容
@@ -10,14 +10,14 @@
 本篇的部署需求如下
 
 - 搭建一个 主从复制 的 GreatSQL 集群
-- 存在一个主节点master，有两个从节点slave
+- 存在一个主节点 Master，有两个从节点 Slave
 - 从节点可以水平拓展
 - 所有的写操作，只能在主节点上执行
 - 读操作可以在所有节点上执行
 
 ## 一、最低配置和架构
 
-本章将使用采用 NFS存储卷 的方式，持久化存储GreatSQL数据目录，具体架构和最低配置如下
+本章将使用采用 NFS存储卷 的方式，持久化存储 GreatSQL 数据目录，具体架构和最低配置如下
 
 > 阅读本章前请您需要阅读完深入浅出Kubernetes 1~9章，或对Kubernetes有一定的基础知识，并已经完成对Kubernetes集群的搭建
 
@@ -43,22 +43,22 @@ Kubernetes集群架构规划
 
 NFS卷能将NFS（网络文件系统）挂载到Pod中，不像emptyDir那样会在删除Pod的同时会被删除，NFS卷的内容在删除Pod是会被保存，卷只是被卸载，这意味着NFS卷可以被预先填充数据，并且这些数据可以在Pod之间共享
 
-三台服务器安装nfs服务，提供nfs存储功能
+三台服务器安装NFS服务，提供NFS存储功能
 
-> 注意master、node1、node2都要安装nfs服务
+> 注意master、node1、node2都要安装NFS服务
 
 ```bash
 $ yum install -y nfs-utils
 ```
 
-启动nfs并设置开机自启
+启动NFS并设置开机自启
 
 ```bash
 $ systemctl start nfs-server
 $ systemctl enable nfs-server
 ```
 
-在mstaer节点上创建三个文件夹，作为数据的存放
+在Mstaer节点上创建三个文件夹，作为数据的存放
 
 ```bash
 $ mkdir -p /data/nfs/greatsql-master
@@ -69,7 +69,7 @@ $ mkdir -p /data/nfs/greatsql-slaver-02
 并写入到`/etc/exports` 文件中，只在主节点上操作
 
 ```bash
-#语法格式：共享文件路径 客户机地址（权限）#这里的客户机地址可以是IP,网段，域名,也可以是任意*
+#语法格式：共享文件路径 客户机地址（权限）#这里的客户机地址可以是IP,网段,域名,也可以是任意*
 $ cat >> /etc/exports << EOF
 /data/nfs/greatsql-master *(rw,sync,no_root_squash)
 /data/nfs/greatsql-slaver-01 *(rw,sync,no_root_squash)
@@ -77,13 +77,13 @@ $ cat >> /etc/exports << EOF
 EOF
 ```
 
-接下来我们可以直接在主服务器上重启NFS服务器
+接下来可以直接在主服务器上重启NFS服务器
 
 ```bash
 $ systemctl restart nfs-server
 ```
 
-执行后我们可以通过这行命令来检查目录是否暴露成功
+执行后可以通过这行命令来检查目录是否暴露成功
 
 > 注意在三个节点中都要检查一下
 
@@ -95,20 +95,18 @@ Export list for 192.168.139.120:
 /data/nfs/greatsql-master    *
 ```
 
-到此我们的NFS服务器就已经配置完成了
+到此NFS服务器就已经配置完成了
 
 ## 三、创建命名空间
 
-我们统一个地方来存放GreatSQL在Kubernetes中的资源清单配置文件，可以自行更改位置
+统一个地方来存放GreatSQL在Kubernetes中的资源清单配置文件，可以自行更改位置
 
 ```bash
 $ mkdir -p /opt/k8s/greatsql_master_slave
 $ cd /opt/k8s/greatsql_master_slave
 ```
 
-创建一个新的命名空间可以做到逻辑隔离、访问控制、自定义资源定义、网络隔离、配置策略隔离、资源管理、可以更好的组织Kubernetes集群，提高管理效率
-
-所以需要创建命名空间来部署GreatSQL集群，当然也可以使用默认的Default命名空间，不过不建议
+创建一个新的命名空间可以做到逻辑隔离、访问控制、自定义资源定义、网络隔离、配置策略隔离、资源管理、可以更好的组织Kubernetes集群，提高管理效率。所以需要创建命名空间来部署GreatSQL集群，当然也可以使用默认的Default命名空间，不过不建议。
 
 推荐都用yaml资源清单文件的方式来创建
 
@@ -122,10 +120,10 @@ spec: {}
 status: {}
 ```
 
-创建Namespace
+创建一个Namespace
 
 ```bash
-$ kubeclt apply -f greatsql-namespace.yaml
+$ kubectl apply -f greatsql-namespace.yaml
 ```
 
 使用`$ kubectl get ns`(namespace = ns)查看Namespace
@@ -142,7 +140,7 @@ kube-system       Active   14d
 
 ## 四、创建Secret
 
-创建一个存储了GreatSQL密码的Secret，可以直接使用这行命令生成这个Secret的资源清单文件
+创建一个存储GreatSQL密码的Secret，可以直接使用这行命令生成这个Secret的资源清单文件
 
 > 若密码不设置为`greatsql`请自行修改，将 PASSWORD= 后面改掉即可
 
@@ -151,13 +149,17 @@ $ kubectl create secret generic greatsql-password --namespace=deploy-greatsql --
 # 输入命令，便出现下面自动生成的Secret资源清单文件
 apiVersion: v1
 data:
-  PASSWORD: Z3JlYXRzcWwK
+  PASSWORD: Z3JlYXRzcWw=
 kind: Secret
 metadata:
   creationTimestamp: null
   name: greatsql-password
   namespace: deploy-greatsql
 ```
+
+> 这里要注意下，网上很多教程采用`echo 123 | base64`这种方式生成密码，但是此时生成的密码，就会把换行符也作为了字符当做密码使用，所以一直报错进不去GreatSQL。如果非要采用这种方法生成密码，需要加上-n，例如：`echo -n 123 | base64`
+>
+> 建议使用kubectl命令导出更合适，不要直接使用base64命令编码填入yaml文件！
 
 复制上面生成的Secret资源清单，写入到`greatsql-secret.yaml`中
 
@@ -166,7 +168,7 @@ $ vim greatsql-secret.yaml
 
 apiVersion: v1
 data:
-  PASSWORD: Z3JlYXRzcWwK
+  PASSWORD: Z3JlYXRzcWw=
 kind: Secret
 metadata:
   creationTimestamp: null
@@ -188,6 +190,8 @@ NAME                TYPE     DATA   AGE
 greatsql-password   Opaque   1      49m
 ```
 
+此处的Opaque表示该secret的值是base64编码后的字符串，需要解码后才能获取真实值。这提供了一定的数据保护，避免secret中的敏感数据以明文方式存储。
+
 ## 五、部署GreatSQL主节点
 
 ### 创建Master节点pv和pvc
@@ -205,7 +209,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    # 注意修改IP地址和暴露的目录（如果不一样）
+    # 注意修改IP地址和暴露的目录
     server: 192.168.139.120
     path: /data/nfs/greatsql-master
   storageClassName: "nfs"
@@ -254,17 +258,18 @@ $ vim greatsql-master.cnf
 [client]
 socket    = /data/GreatSQL/mysql.sock
 [mysql]
-prompt="(\\D)[\\u@GreatSQL][\\d]>"
+prompt="(\\D)[\\u@GreatSQL][\\d]> "
 [mysqld]
 skip-host-cache
 skip-name-resolve
 datadir          = /data/GreatSQL
 socket           = /data/GreatSQL/mysql.sock
+log_error        = /data/GreatSQL/error.log
 secure-file-priv = /var/lib/mysql-files
 pid-file         = mysql.pid
 user             = mysql
 secure-file-priv = NULL
-server-id        = 1  # server id，要注意多个greatsql节点唯一
+server-id        = 1  # server id，要注意多个GeratSQL节点唯一
 log-bin          = master-bin  # 生成的logbin的文件名
 log_bin_index    = master-bin.index  
 binlog-format    = ROW  # binlog的格式
@@ -281,12 +286,13 @@ data:
     [client]
     socket    = /data/GreatSQL/mysql.sock
     [mysql]
-    prompt="(\\D)[\\u@GreatSQL][\\d]>"
+    prompt="(\\D)[\\u@GreatSQL][\\d]> "
     [mysqld]
     skip-host-cache
     skip-name-resolve
     datadir          = /data/GreatSQL
     socket           = /data/GreatSQL/mysql.sock
+    log_error        = /data/GreatSQL/error.log
     secure-file-priv = /var/lib/mysql-files
     pid-file         = mysql.pid
     user             = mysql
@@ -304,7 +310,7 @@ metadata:
 
 > data：下的原本为greatsql-master.cnf，此处修改为my.cnf，为方便后续定位
 
-复制生成的内容到`greatsql-master-cnf.yaml`,并创建配置文件，且查看是否创建成功
+复制生成的内容到`greatsql-master-cnf.yaml`，并创建配置文件，且查看是否创建成功
 
 ```bash
 $ vim greatsql-master-cnf.yaml
@@ -315,7 +321,7 @@ configmap/greatsql-master-cnf created
 
 $ kubectl get cm -n deploy-greatsql
 NAME                  DATA   AGE
-greatsql-master-cnf   1      23s
+greatsql-master-cnf   1      23s  # 创建成功
 kube-root-ca.crt      1      4h57m
 ```
 
@@ -424,8 +430,6 @@ NAME                     READY   AGE
 deploy-greatsql-master   1/1     12m
 ```
 
-> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe`排查
-
 查看Pod创建情况
 
 ```bash
@@ -436,7 +440,7 @@ deploy-greatsql-master-0   1/1     Running   0          5m15s
 
 > 注意查看`READY`，若为0/1则使用`kubectl describe pod deploy-greatsql-master-0 -n deploy-greatsql` 排查错误
 
-接下来查看一下nfs挂载的目录，可以看到初始化文件已经出现了
+接下来查看一下NFS挂载的目录，可以看到初始化文件已经出现了
 
 ```bash
 $ ls /data/nfs/greatsql-master
@@ -464,11 +468,9 @@ greatsql> show global variables like "server_id"; # 查看下server_id是否为1
 1 row in set (0.01 sec)
 ```
 
-> 这里注意，我在第一次操作的时候Secret密码不生效，后面把nfs目录清空，且重新创建创建`StatefulSet`和`Secret`两份配置文件，再次启动就成功改为`greatsql`这个密码了，因为`MYSQL_ROOT_PASSWORD`参数只有在GreatSQL初始化的时候才生效，
-
 ## 六、部署GreatSQL从节点
 
-刚刚安装部署成功了GreatSQL的主节点，接下来我们来安装部署GreatSQL的第一个从节点
+刚刚安装部署成功了GreatSQL的主节点，接下来安装部署GreatSQL的第一个从节点
 
 ### 创建Slaver节点PV和PVC
 
@@ -485,6 +487,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
+  # 注意修改IP地址和暴露的目录
     server: 192.168.139.120
     path: /data/nfs/greatsql-slaver-01
   storageClassName: "nfs"
@@ -538,6 +541,7 @@ skip-host-cache
 skip-name-resolve
 datadir          = /data/GreatSQL
 socket           = /data/GreatSQL/mysql.sock
+log_error        = /data/GreatSQL/error.log
 secure-file-priv = /var/lib/mysql-files
 pid-file         = mysql.pid
 user             = mysql
@@ -551,7 +555,7 @@ relay-log-index  = slave-bin.index
 接下来将创建一个ConfigMap来存储这个配置文件。可以使用以下配置生成yaml资源清单文件内容
 
 ```yaml
-$ kubectl create configmap greatsql-slaver-cnf -n deploy-greatsql --from-file=greatsql-slaver-01.cnf --dry-run=client -o yaml
+$ kubectl create configmap greatsql-slaver-01-cnf -n deploy-greatsql --from-file=greatsql-slaver-01.cnf --dry-run=client -o yaml
 # 会自动生成ConfigMap的内容，这里就不在示范
 ```
 
@@ -682,8 +686,6 @@ deploy-greatsql-master      1/1     17h
 deploy-greatsql-slaver-01   1/1     7s
 ```
 
-> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe`排查
-
 查看Pod创建情况
 
 ```bash
@@ -693,7 +695,7 @@ deploy-greatsql-master-0      1/1     Running   0          17h
 deploy-greatsql-slaver-01-0   1/1     Running   0          2m8s
 ```
 
-> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe`排查
+> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe pod deploy-greatsql-slaver-01-0 -n deploy-greatsql`排查
 
 接下来查看一下nfs挂载的目录，可以看到初始化文件已经出现了
 
@@ -761,7 +763,7 @@ spec:
   volumeName: deploy-greatsql-slaver-02-nfs-pv
 ```
 
-创建PV和PVC,并检查一下
+创建PV和PVC，并检查一下
 
 ```bash
 $ kubectl apply -f greatsql-slaver-02-pv-pvc.yaml
@@ -867,19 +869,20 @@ deploy-greatsql-slaver-01-0   1/1     Running   0          94m
 deploy-greatsql-slaver-02-0   1/1     Running   0          22s
 ```
 
-> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe`排查
+> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe pod deploy-greatsql-slaver-02-0 -n deploy-greatsql`排查
 
 接下来查看一下nfs挂载的目录，可以看到初始化文件已经出现了
 
 ```bash
-$ ls /data/nfs/greatsql-slaver-01
-auto.cnf    ca.pem           client-key.pem     #ib_16384_1.dblwr  ibdata1  #innodb_redo  mysql      mysql.pid   mysql.sock.lock     private_key.pem  server-cert.pem  slave-bin.000001  slave-bin.000003  sys        undo_001
-ca-key.pem  client-cert.pem  #ib_16384_0.dblwr  ib_buffer_pool     ibtmp1   #innodb_temp  mysql.ibd  mysql.sock  performance_schema  public_key.pem   server-key.pem   slave-bin.000002  slave-bin.index   sys_audit  undo_002
+$ ls /data/nfs/greatsql-slaver-02
+auto.cnf    client-cert.pem  #file_purge        ib_buffer_pool  #innodb_redo  mysql.ibd   mysql.sock.lock     public_key.pem   slave-bin.000001  slave-bin.index  undo_001
+ca-key.pem  client-key.pem   #ib_16384_0.dblwr  ibdata1         #innodb_temp  mysql.pid   performance_schema  server-cert.pem  slave-bin.000002  sys              undo_002
+ca.pem      error.log        #ib_16384_1.dblwr  ibtmp1          mysql         mysql.sock  private_key.pem     server-key.pem   slave-bin.000003  sys_audit
 ```
 
 > 这里也要看一下binlog的文件名是否为slave-bin，若不是则cnf配置文件没生效
 
-到此，已经部署完成三台服务器了，接下来我们将组成一个集群
+到此，已经部署完成三台服务器了，接下来将组成一个组从复制的架构
 
 ## 八、组成主从集群
 
@@ -919,10 +922,10 @@ $ change master to master_host='deploy-greatsql-master-0.deploy-greatsql-master-
 - master_port: 主库的端口号默认是3306
 - master_user: 用于复制连接的用户名
 - master_password: 登录到主节点要用到的密码
-- master_log_file: 之前查看greatsql主节点状态时候的 File 字段
-- master_log_pos: 之前查看greatsql主节点状态时候的 Position 字段
+- master_log_file: 之前查看GreatSQL主节点状态时候的 File 字段
+- master_log_pos: 之前查看GreatSQL主节点状态时候的 Position 字段
 - master_connect_retry: 主节点重连时间
-- get_master_public_key: 连接主greatsql的公钥获取方式
+- get_master_public_key: 连接主GreatSQL的公钥获取方式
 
 进入到第一个从节点
 
@@ -1071,11 +1074,11 @@ greatsql>  select * from testdb.testtable;
 
 ## 十、GreatSQL-Operator仓库
 
-随着云原生技术的蓬勃发展,Kubernetes已然成为容器编排的事实标准,在Web应用、大数据、人工智能等各种场景中被广泛采用。作为数据库界的新星,GreatSQL部署在Kubernetes之上也是大势所趋。
+随着云原生技术的蓬勃发展，Kubernetes已然成为容器编排的事实标准，在Web应用、大数据、人工智能等各种场景中被广泛采用。作为数据库界的新星，GreatSQL部署在Kubernetes之上也是大势所趋。
 
-然而,我们明白Kubernetes的学习门槛较高,yaml文件编排复杂冗长,这给许多GreatSQL用户的 K8s 之旅带来不小困扰。
+然而，明白Kubernetes的学习门槛较高，yaml文件编排复杂冗长，这给许多GreatSQL用户的 K8s 之旅带来不小困扰。
 
-为此,GreatSQL 社区积极拥抱开源,创建了 GreatSQL-Operator 项目,目标是让更多技术爱好者一同编写 Kubernetes 配置模板,让 GreatSQL 在 K8s 集群中轻松实现高可用。一起学习、贡献、成长。继续推进 GreatSQL 的 K8s 之路,在云原生的海洋中扬帆起航!
+为此，GreatSQL 社区积极拥抱开源，创建了 GreatSQL-Operator 项目，目标是让更多技术爱好者一同编写 Kubernetes 配置模板，让 GreatSQL 在 K8s 集群中轻松实现高可用。一起学习、贡献、成长。继续推进 GreatSQL 的 K8s 之路，在云原生的海洋中扬帆起航!
 
 
 ## 参考资料

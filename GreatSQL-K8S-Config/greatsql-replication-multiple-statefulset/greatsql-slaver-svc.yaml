@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: deploy-greatsql-slaver-svc
+  namespace: deploy-greatsql
+  labels:
+    app: greatsql-slaver
+spec:
+  ports:
+  - port: 3306
+    name: greatsql
+    targetPort: 3306
+    nodePort: 30308
+  selector:
+    app: greatsql-slaver
+  type: NodePort
+  sessionAffinity: ClientIP
