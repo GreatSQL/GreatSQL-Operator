@@ -141,7 +141,7 @@ $ kubectl get replicationcontroller  <rc-name>
 以文本格式列出所有 `RC` 和` Service`:
 
 ```bash
-$ kubectl get rc, services
+$ kubectl get rc,services
 ```
 
 以文本格式列出所有 `Daemonset`，包括未初始化的 `Daemonset`:
