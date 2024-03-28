@@ -280,14 +280,14 @@ $ systemctl enable docker
 
 ```bash
 $ cat <<EOF> /etc/yum.repos.d/Kubernetes.repo
-[Kubernetes]
+#refer: https://developer.aliyun.com/mirror/kubernetes?spm=a2c6h.13651102.0.0.3e221b11fHuReF
+[kubernetes]
 name=Kubernetes
-baseurl=https://mirrors.aliyun.com/Kubernetes/yum/repos/Kubernetes-el7-x86_64
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
 enabled=1
-gpgchech=0
-repo_gpgcheck=0
-gpgkey=https://mirrors.aliyun.com/Kubernetes/yum/doc/yum-key.gpg
-       https://mirrors.aliyun.com/Kubernetes/yum/doc/rpm-package-key.gpg
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 EOF
 ```
 
@@ -314,16 +314,17 @@ KUBE_PROXY_MODE="ipvs"
 
 ## 四、集群初始化
 
-> 此操作只在 Master 节点上执行即可，请自行修改下方参数
+> 此操作只在 master 节点上执行即可，请自行修改下方参数
 
 ```bash
 $ kubeadm init \
  --apiserver-advertise-address=192.168.139.120 \
  --image-repository registry.aliyuncs.com/google_containers \
- --Kubernetes-version=v1.23.6 \
+ --kubernetes-version=v1.23.6 \
  --service-cidr=10.96.0.0/12 \
  --pod-network-cidr=10.244.0.0/16
 ```
+其中，`192.168.139.120` 是master的网络地址，`10.96.0.0/12`和`10.244.0.0/16` 是kubernetes私有地址，一般不需要调整。
 
 如果出现了`Your Kubernetes control-plane has initialized successfully!`表示已经安装成功了
 
@@ -337,7 +338,7 @@ $ sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
 记得要保留下屏幕输出的内容，例如以下
 
-> 这是Node节点加入集群的命令
+> 这是要在两个node节点上执行加入集群的命令
 
 ```bash
 Then you can join any number of worker nodes by running the following on each as root:
@@ -348,10 +349,10 @@ kubeadm join 192.168.139.120:6443 --token j32p61.gur3ktnazmmyy1od \
 创建完成后要看下 Kubelet 的状态
 
 ```bash
-$ systemctl status kublet
+$ systemctl status kubelet
 ```
 
-执行`$ kubectl get no`查看是否为 `Ready` 状态
+在master节点上执行`$ kubectl get no`查看是否为 `Ready` 状态
 
 ```bash
 $ kubectl get no
@@ -379,11 +380,11 @@ kube-proxy-rk5df                           1/1     Running   2 (9d ago)      9d
 kube-scheduler-master                      1/1     Running   4 (9d ago)      9d
 ```
 
-## 五、Node节点加入集群
+## 五、node节点加入集群
 
-> 以下操作只在 Node 节点执行
+> 以下操作只在 node 节点执行
 
-在初始化完成 Master 节点的时候屏幕会输出以下内容
+在初始化完成 master 节点的时候屏幕会输出以下内容
 
 ```bash
 Then you can join any number of worker nodes by running the following on each as root:
@@ -391,7 +392,7 @@ kubeadm join 192.168.139.120:6443 --token j32p61.gur3ktnazmmyy1od \
         --discovery-token-ca-cert-hash sha256:c78a7421beeece067e696d09fb488deb77e96c5a63c266bc6ca4de7b25617dbf 
 ```
 
-直接在两个 Node 节点上执行即可加入集群，如果不小心清空了，请往下滑>>>七、已知问题和解决方案
+直接在两个 node 节点上执行即可加入集群，如果不小心清空了，请往下查看：[七、已知问题和解决方案](./#七、已知问题和解决方案)。
 
 ## 六、检查集群情况
 
@@ -449,7 +450,7 @@ $ systemctl restart containerd
 
 如果已经是安装的高版本的containerd，比如1.6.x，那查看`/etc/containerd/config.toml`配置文件，是否是CRI接口被disable了，如：disabled_plugins = ["cri"]，关闭后重启containerd服务后再试试
 
-之后Master节点执行`reset`，再执行创建集群
+之后master节点执行`reset`，再执行创建集群
 
 ```bash
 $ kubeadm reset
@@ -491,9 +492,9 @@ $ chmod 755 /usr/local/k8s_images_pull.sh
 $ /usr/local/k8s_images_pull.sh
 ```
 
-之后 Master节点 先执行`reset`重置安装的 Kubernetes 集群
+之后 master节点 先执行`reset`重置安装的 Kubernetes 集群
 
-Master节点 再次执行安装
+master节点 再次执行安装
 
 ```bash
 $ kubeadm init \
@@ -533,7 +534,7 @@ $ systemctl daemon-reload
 $ systemctl restart docker
 ```
 
-**其余两节点也完成下以上操作** 随后Master节点执行
+**其余两节点也完成下以上操作** 随后master节点执行
 
 ```bash
 $ kubeadm init \
@@ -635,10 +636,10 @@ $ cd /opt
 $ mkdir k8s
 ```
 
-下载calico.yaml因为网站证书过期了，所以我们加入`--no-check-certificate`
+下载calico.yaml（因为网站证书过期了，所以我们加入`--no-check-certificate`）：
 
 ```bash
-$ wget https://docs.projectcalico.org/manifests/calico.yaml --no-check-certificate
+$ wget -c https://docs.projectcalico.org/manifests/calico.yaml --no-check-certificate
 ```
 
 查看下calico.yaml需要下载的镜像
@@ -663,7 +664,7 @@ $ grep image calico.yaml
 $ sed -i 's#docker.io/##g' calico.yaml
 ```
 
-在执行下`$ grep image calico.yaml`
+再执行下`$ grep image calico.yaml`
 
 ```bash
 $ grep image calico.yaml
@@ -705,9 +706,9 @@ kube-proxy-rk5df                           1/1     Running   2 (9d ago)      9d
 kube-scheduler-master                      1/1     Running   4 (9d ago)      9d
 ```
 
-### 7.5 找不到Node节点加入Master节点命令
+### 7.5 找不到node节点加入master节点命令
 
-Node节点 加入集群格式为
+node节点 加入集群格式为
 
 ```bash
 kubeadm join <master节点IP:6443> --token <mster的token> \
@@ -716,7 +717,7 @@ kubeadm join <master节点IP:6443> --token <mster的token> \
 
 **获取Token值**
 
-再初始化 Master节点 的时候会出现 token 的信息，如果不小心清空了记录，可以用以下方式获取或者重新申请
+再初始化 master节点 的时候会出现 token 的信息，如果不小心清空了记录，可以用以下方式获取或者重新申请
 
 ```bash
 # 获取token
