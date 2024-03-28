@@ -97,7 +97,7 @@ spec:
     required: # 硬性约束
       nodeSelectorTerms: # 节点选择条件的集合
       - matchExpressions: # 基于节点标签的匹配表达式
-        - key: Kubernetes.io/hostname # 节点标签的键
+        - key: kubernetes.io/hostname # 节点标签的键
           operator: In # 匹配运算符,可为In、NotIn等
           values: # 标签值列表
           - node1 # 这里将节点修改为node1，这样就只会调度到node1节点上
