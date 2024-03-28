@@ -10,13 +10,14 @@ Pod 是 Kubernetes 项目中最小的 API 对象。如果换一个更专业的�
 为了更好地理解，我们将使用一个最简单的例子来介绍如何运行Pod
 > 注意！这里仅为举例学习，并不能作为生产使用
 ```bash
-$ kubectl run greatsql-pod --image=greatsql/greatsql:8.0.32-25 --env=MYSQL_ROOT_PASSWORD=1
+$ kubectl run greatsql-pod --image=greatsql/greatsql:8.0.32-25 --env=MYSQL_ROOT_PASSWORD=1 --env=MAXPERF=0
 pod/greatsql-pod created
 ```
 在上面的命令中，greatsql-pod是要创建Pod的名称
 > 此处只能字母数字开头或者结尾，只能由小写字母和数字或'-'or'.'符号组成，其余会报错
 --image=greatsql/greatsql:8.0.32-25 是用来指定容器所使用的镜像
 --env=MYSQL_ROOT_PASSWORD=1 是用来指定初始化密码为空
+--env=MAXPERF=0 是用来指定不以MAXPERF=1模式运行
 
 执行完成命令之后，可以通过 get pod 命令查看刚才运行的Pod
 ```bash
