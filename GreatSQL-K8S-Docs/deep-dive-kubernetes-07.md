@@ -49,7 +49,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: my-service
-  namespace: dev
+  namespace: default
 spec:
   selector:
     app: my-app
@@ -84,7 +84,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: my-service
-  namespace: dev
+  namespace: default
 spec:
   type: NodePort
   selector:
@@ -106,7 +106,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: my-service
-  namespace: dev
+  namespace: default
 spec:
   type: LoadBalancer
   selector:
@@ -130,12 +130,13 @@ ExternalName Service是Kubernetes中一种特殊的服务类型，它允许我�
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-greatsql
+  name: my-service
+  namespace: default
 spec:
   type: ExternalName
   externalName: my.database.example.com
 ```
-在这个示例中，我们创建了一个名为my-greatsql的ExternalName Service，它将所有对my-greatsql的DNS查询转发到my.database.example.com。这样，我们的应用程序就可以通过访问my-greatsql来访问外部数据库。
+在这个示例中，我们创建了一个名为my-service的ExternalName Service，它将所有对my-service的DNS查询转发到my.database.example.com。这样，我们的应用程序就可以通过访问my-service来访问外部数据库。
 
 ## 三、Headless Service
 
@@ -153,21 +154,21 @@ Headless Service非常适用于需要从集群内部访问外部服务的场景�
 apiVersion: v1
 kind: Service
 metadata:
-  name: db
+  name: my-service
   labels:
-    app: database
+    app: app-db
 spec:
   ports:
-  - name: greatsql
+  - name: greatsql-port
     port: 3306
   # 设置Headless Service
   clusterIP: None
   selector:
-    app: greatsql
+    app: my-app
 ```
-在这个示例中，我们创建了一个名为db的Headless Service。这个Service的主要作用是为StatefulSet成员提供稳定的网络标识，以便其他Pod可以找到它。这是通过DNS查询实现的，当Pod查询db时，它会返回与app: greatsql标签匹配的所有Pod的IP地址，而不是返回一个集群IP。这样，Pod就可以直接与其他Pod通信，而不需要经过负载均衡。
+在这个示例中，我们创建了一个名为my-service的Headless Service。这个Service的主要作用是为StatefulSet成员提供稳定的网络标识，以便其他Pod可以找到它。这是通过DNS查询实现的，当Pod查询my-service时，它会返回与app: my-app 标签匹配的所有Pod的IP地址，而不是返回一个集群IP。这样，Pod就可以直接与其他Pod通信，而不需要经过负载均衡。
 
-这种类型的Service特别适用于有状态应用，如数据库。在这个示例中，db Service可能用于访问运行在Kubernetes集群中的数据库。数据库可能有多个副本，每个副本都运行在自己的Pod中，并带有app: greatsql标签。通过使用Headless Service，应用程序可以直接访问每个数据库副本，而不需要经过额外的负载均衡。这对于需要读写分离或需要直接访问特定数据库副本的应用程序非常有用。
+这种类型的Service特别适用于有状态应用，如数据库。在这个示例中，my-service Service可能用于访问运行在Kubernetes集群中的数据库。数据库可能有多个副本，每个副本都运行在自己的Pod中，并带有app: my-app 标签。通过使用Headless Service，应用程序可以直接访问每个数据库副本，而不需要经过额外的负载均衡。这对于需要读写分离或需要直接访问特定数据库副本的应用程序非常有用。
 
 ## 四、如何选择合适的服务类型
 
