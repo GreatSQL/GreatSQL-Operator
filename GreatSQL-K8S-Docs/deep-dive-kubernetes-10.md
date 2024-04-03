@@ -62,8 +62,8 @@ $ systemctl enable nfs-server
 
 ```bash
 $ mkdir -p /data/nfs/greatsql-master
-$ mkdir -p /data/nfs/greatsql-slaver-01
-$ mkdir -p /data/nfs/greatsql-slaver-02
+$ mkdir -p /data/nfs/greatsql-slave-01
+$ mkdir -p /data/nfs/greatsql-slave-02
 ```
 
 并写入到`/etc/exports` 文件中，只在主节点上操作
@@ -72,8 +72,8 @@ $ mkdir -p /data/nfs/greatsql-slaver-02
 #语法格式：共享文件路径 客户机地址（权限）#这里的客户机地址可以是IP,网段,域名,也可以是任意*
 $ cat >> /etc/exports << EOF
 /data/nfs/greatsql-master *(rw,sync,no_root_squash)
-/data/nfs/greatsql-slaver-01 *(rw,sync,no_root_squash)
-/data/nfs/greatsql-slaver-02 *(rw,sync,no_root_squash)
+/data/nfs/greatsql-slave-01 *(rw,sync,no_root_squash)
+/data/nfs/greatsql-slave-02 *(rw,sync,no_root_squash)
 EOF
 ```
 
@@ -90,8 +90,8 @@ $ systemctl restart nfs-server
 ```bash
 $ showmount -e 192.168.139.120
 Export list for 192.168.139.120:
-/data/nfs/greatsql-slaver-02 *
-/data/nfs/greatsql-slaver-01 *
+/data/nfs/greatsql-slave-02 *
+/data/nfs/greatsql-slave-01 *
 /data/nfs/greatsql-master    *
 ```
 
@@ -406,6 +406,8 @@ spec:
               key: PASSWORD
               name: greatsql-password
               optional: false
+        - name: MAXPERF
+          value: "0"
       volumes:
       - name: greatsql-data
         persistentVolumeClaim:
@@ -475,11 +477,11 @@ greatsql> show global variables like "server_id"; # 查看下server_id是否为1
 ### 创建Slaver节点PV和PVC
 
 ```yaml
-$ vim greatsql-slaver-01-pv-pvc.yaml
+$ vim greatsql-slave-01-pv-pvc.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: deploy-greatsql-slaver-01-nfs-pv
+  name: deploy-greatsql-slave-01-nfs-pv
   namespace: deploy-greatsql
 spec:
   capacity:
@@ -489,13 +491,13 @@ spec:
   nfs:
   # 注意修改IP地址和暴露的目录
     server: 192.168.139.120
-    path: /data/nfs/greatsql-slaver-01
+    path: /data/nfs/greatsql-slave-01
   storageClassName: "nfs"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: deploy-greatsql-slaver-01-nfs-pvc
+  name: deploy-greatsql-slave-01-nfs-pvc
   namespace: deploy-greatsql
 spec:
   accessModes:
@@ -504,15 +506,15 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  volumeName: deploy-greatsql-slaver-01-nfs-pv
+  volumeName: deploy-greatsql-slave-01-nfs-pv
 ```
 
 创建PV和PVC
 
 ```bash
-$ kubectl apply -f greatsql-slaver-01-pv-pvc.yaml
-persistentvolume/deploy-greatsql-slaver-01-nfs-pv created
-persistentvolumeclaim/deploy-greatsql-slaver-01-nfs-pvc created
+$ kubectl apply -f greatsql-slave-01-pv-pvc.yaml
+persistentvolume/deploy-greatsql-slave-01-nfs-pv created
+persistentvolumeclaim/deploy-greatsql-slave-01-nfs-pvc created
 ```
 
 创建完成后要检查一下
@@ -520,9 +522,9 @@ persistentvolumeclaim/deploy-greatsql-slaver-01-nfs-pvc created
 ```bash
 $ kubectl get pv,pvc -n deploy-greatsql
 NAME 													STATUS  #后面不展示
-persistentvolume/deploy-greatsql-slaver-01-nfs-pv   	Bound
+persistentvolume/deploy-greatsql-slave-01-nfs-pv   	Bound
 NAME  													STATUS  #后面不展示
-persistentvolumeclaim/deploy-greatsql-slaver-01-nfs-pvc	Bound
+persistentvolumeclaim/deploy-greatsql-slave-01-nfs-pvc	Bound
 ```
 
 ### 创建Slaver节点cnf
@@ -530,7 +532,7 @@ persistentvolumeclaim/deploy-greatsql-slaver-01-nfs-pvc	Bound
 我们需要为从节点准备一个` my.cnf `配置文件：
 
 ```bash
-$ vim greatsql-slaver-01.cnf
+$ vim greatsql-slave-01.cnf
 
 [client]
 socket           = /data/GreatSQL/mysql.sock
@@ -555,25 +557,25 @@ relay-log-index  = slave-bin.index
 接下来将创建一个ConfigMap来存储这个配置文件。可以使用以下配置生成yaml资源清单文件内容
 
 ```yaml
-$ kubectl create configmap greatsql-slaver-01-cnf -n deploy-greatsql --from-file=greatsql-slaver-01.cnf --dry-run=client -o yaml
+$ kubectl create configmap greatsql-slave-01-cnf -n deploy-greatsql --from-file=greatsql-slave-01.cnf --dry-run=client -o yaml
 # 会自动生成ConfigMap的内容，这里就不在示范
 ```
 
-把生成的内容贴到`greatsql-slaver-01.yaml`中
+把生成的内容贴到`greatsql-slave-01.yaml`中
 
-> 记得把data下方的 greatsql-slaver-01.cnf | 修改为 my.cnf: | 方便后续定位
+> 记得把data下方的 greatsql-slave-01.cnf | 修改为 my.cnf: | 方便后续定位
 
 ```yaml
-$ vim greatsql-slaver-01-cnf.yaml
+$ vim greatsql-slave-01-cnf.yaml
 # 复制自动生成的内容进来即可
 
-$ kubectl apply -f greatsql-slaver-01-cnf.yaml
-configmap/greatsql-slaver-01-cnf created
+$ kubectl apply -f greatsql-slave-01-cnf.yaml
+configmap/greatsql-slave-01-cnf created
 
 $ kubectl get cm -n deploy-greatsql
 NAME                  DATA   AGE
 greatsql-master-cnf      1      18h
-greatsql-slaver-01-cnf   1      35s
+greatsql-slave-01-cnf   1      35s
 kube-root-ca.crt         1      23h
 ```
 
@@ -582,15 +584,15 @@ kube-root-ca.crt         1      23h
 接下来创建一个Service，这个Service将让所有Slaver节点共用
 
 ```bash
-$ vim greatsql-slaver-svc.yaml
+$ vim greatsql-slave-svc.yaml
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: deploy-greatsql-slaver-svc
+  name: deploy-greatsql-slave-svc
   namespace: deploy-greatsql
   labels:
-    app: greatsql-slaver
+    app: greatsql-slave
 spec:
   ports:
   - port: 3306
@@ -598,7 +600,7 @@ spec:
     targetPort: 3306
     nodePort: 30308
   selector:
-    app: greatsql-slaver
+    app: greatsql-slave
   type: NodePort
   sessionAffinity: ClientIP
 ```
@@ -606,34 +608,34 @@ spec:
 创建并查看
 
 ```bash
-$ kubectl apply -f greatsql-slaver-svc.yaml
-service/deploy-greatsql-slaver-svc created
+$ kubectl apply -f greatsql-slave-svc.yaml
+service/deploy-greatsql-slave-svc created
 
 $ kubectl get svc -n deploy-greatsql
 NAME                         TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
 deploy-greatsql-master-svc   NodePort   10.98.12.52     <none>        3306:30306/TCP   18h
-deploy-greatsql-slaver-svc   NodePort   10.96.112.130   <none>        3306:30308/TCP   5s
+deploy-greatsql-slave-svc   NodePort   10.96.112.130   <none>        3306:30308/TCP   5s
 ```
 
 ### 创建Slaver节点StatefulSet
 
 ```yaml
-$ vim greatsql-slaver-statefulset-01.yaml
+$ vim greatsql-slave-statefulset-01.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: deploy-greatsql-slaver-01
+  name: deploy-greatsql-slave-01
   namespace: deploy-greatsql
 spec:
   selector:
     matchLabels:
-      app: greatsql-slaver
-  serviceName: "deploy-greatsql-slaver-svc"
+      app: greatsql-slave
+  serviceName: "deploy-greatsql-slave-svc"
   replicas: 1
   template:
     metadata:
       labels:
-        app: greatsql-slaver
+        app: greatsql-slave
     spec:
       terminationGracePeriodSeconds: 10
       containers:
@@ -661,13 +663,15 @@ spec:
                   key: PASSWORD
                   name: greatsql-password
                   optional: false
+            - name: MAXPERF
+	      value: "0"
       volumes:
         - name: greatsql-data
           persistentVolumeClaim:
-            claimName: deploy-greatsql-slaver-01-nfs-pvc
+            claimName: deploy-greatsql-slave-01-nfs-pvc
         - name: greatsql-conf
           configMap:
-            name: greatsql-slaver-01-cnf
+            name: greatsql-slave-01-cnf
             items:
               - key: my.cnf
                 mode: 0644
@@ -677,13 +681,13 @@ spec:
 创建statefulset并检查是否创建成功
 
 ```bash
-$ kubectl apply -f greatsql-slaver-statefulset-01.yaml
-statefulset.apps/deploy-greatsql-slaver-01 created
+$ kubectl apply -f greatsql-slave-statefulset-01.yaml
+statefulset.apps/deploy-greatsql-slave-01 created
 
 $ kubectl get statefulset -n deploy-greatsql
 NAME                        READY   AGE
 deploy-greatsql-master      1/1     17h
-deploy-greatsql-slaver-01   1/1     7s
+deploy-greatsql-slave-01   1/1     7s
 ```
 
 查看Pod创建情况
@@ -692,15 +696,15 @@ deploy-greatsql-slaver-01   1/1     7s
 $ kubectl get po -n deploy-greatsql
 NAME                          READY   STATUS    RESTARTS   AGE
 deploy-greatsql-master-0      1/1     Running   0          17h
-deploy-greatsql-slaver-01-0   1/1     Running   0          2m8s
+deploy-greatsql-slave-01-0   1/1     Running   0          2m8s
 ```
 
-> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe pod deploy-greatsql-slaver-01-0 -n deploy-greatsql`排查
+> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe pod deploy-greatsql-slave-01-0 -n deploy-greatsql`排查
 
 接下来查看一下nfs挂载的目录，可以看到初始化文件已经出现了
 
 ```bash
-$ ls /data/nfs/greatsql-slaver-01
+$ ls /data/nfs/greatsql-slave-01
 auto.cnf    ca.pem           client-key.pem     #ib_16384_1.dblwr  ibdata1  #innodb_redo  mysql      mysql.pid   mysql.sock.lock     private_key.pem  server-cert.pem  slave-bin.000001  slave-bin.000003  sys        undo_001
 ca-key.pem  client-cert.pem  #ib_16384_0.dblwr  ib_buffer_pool     ibtmp1   #innodb_temp  mysql.ibd  mysql.sock  performance_schema  public_key.pem   server-key.pem   slave-bin.000002  slave-bin.index   sys_audit  undo_002
 ```
@@ -710,7 +714,7 @@ ca-key.pem  client-cert.pem  #ib_16384_0.dblwr  ib_buffer_pool     ibtmp1   #inn
 进入Pod查看GreatSQL-Slaver-01数据库情况
 
 ```bash
-$ kubectl exec -it deploy-greatsql-slaver-01-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
+$ kubectl exec -it deploy-greatsql-slave-01-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
 Enter password:  # 这里输入密码
 Welcome to the MySQL monitor.  Commands end with ; or \g.
 Your MySQL connection id is 10
@@ -732,11 +736,11 @@ greatsql> show global variables like "server_id"; # 查看下server_id是否为2
 此处就简单介绍，避免篇幅太长，首先创建PV和PVC
 
 ```yaml
-$ vim greatsql-slaver-02-pv-pvc.yaml
+$ vim greatsql-slave-02-pv-pvc.yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: deploy-greatsql-slaver-02-nfs-pv
+  name: deploy-greatsql-slave-02-nfs-pv
   namespace: deploy-greatsql
 spec:
   capacity:
@@ -745,13 +749,13 @@ spec:
     - ReadWriteMany
   nfs:
     server: 192.168.139.120
-    path: /data/nfs/greatsql-slaver-02
+    path: /data/nfs/greatsql-slave-02
   storageClassName: "nfs"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: deploy-greatsql-slaver-02-nfs-pvc
+  name: deploy-greatsql-slave-02-nfs-pvc
   namespace: deploy-greatsql
 spec:
   accessModes:
@@ -760,52 +764,52 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  volumeName: deploy-greatsql-slaver-02-nfs-pv
+  volumeName: deploy-greatsql-slave-02-nfs-pv
 ```
 
 创建PV和PVC，并检查一下
 
 ```bash
-$ kubectl apply -f greatsql-slaver-02-pv-pvc.yaml
+$ kubectl apply -f greatsql-slave-02-pv-pvc.yaml
 $ kubectl get pv,pvc -n deploy-greatsql
 ```
 
 复制一个`my.cnf `配置文件，我们直接用Slaver01节点的即可
 
 ```bash
-$ cp greatsql-slaver-01-cnf.yaml greatsql-slaver-02-cnf.yaml
-$ vim greatsql-slaver-02-cnf.yaml
+$ cp greatsql-slave-01-cnf.yaml greatsql-slave-02-cnf.yaml
+$ vim greatsql-slave-02-cnf.yaml
 # 修改一下server-id和name 即可
 server-id        = 3
-name: greatsql-slaver-02-cnf
+name: greatsql-slave-02-cnf
 ```
 
 创建和检查ConfigMap
 
 ```bash
-$ kubectl apply -f greatsql-slaver-02-cnf.yaml
+$ kubectl apply -f greatsql-slave-02-cnf.yaml
 $ kubectl get cm -n deploy-greatsql
 ```
 
 创建StatefulSet
 
 ```yaml
-$ vim greatsql-slaver-statefulset-02.yaml
+$ vim greatsql-slave-statefulset-02.yaml
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: deploy-greatsql-slaver-02
+  name: deploy-greatsql-slave-02
   namespace: deploy-greatsql
 spec:
   selector:
     matchLabels:
-      app: greatsql-slaver
-  serviceName: "deploy-greatsql-slaver-svc"
+      app: greatsql-slave
+  serviceName: "deploy-greatsql-slave-svc"
   replicas: 1
   template:
     metadata:
       labels:
-        app: greatsql-slaver
+        app: greatsql-slave
     spec:
       terminationGracePeriodSeconds: 10
       containers:
@@ -833,13 +837,15 @@ spec:
                   key: PASSWORD
                   name: greatsql-password
                   optional: false
+            - name: MAXPERF
+              value: "0"
       volumes:
         - name: greatsql-data
           persistentVolumeClaim:
-            claimName: deploy-greatsql-slaver-02-nfs-pvc
+            claimName: deploy-greatsql-slave-02-nfs-pvc
         - name: greatsql-conf
           configMap:
-            name: greatsql-slaver-02-cnf
+            name: greatsql-slave-02-cnf
             items:
               - key: my.cnf
                 mode: 0644
@@ -849,14 +855,14 @@ spec:
 创建statefulset并检查是否创建成功
 
 ```bash
-$ kubectl apply -f greatsql-slaver-statefulset-02.yaml
-statefulset.apps/deploy-greatsql-slaver-02 created
+$ kubectl apply -f greatsql-slave-statefulset-02.yaml
+statefulset.apps/deploy-greatsql-slave-02 created
 
 $ kubectl get statefulset -n deploy-greatsql
 NAME                        READY   AGE
 deploy-greatsql-master      1/1     122m
-deploy-greatsql-slaver-01   1/1     94m
-deploy-greatsql-slaver-02   1/1     5s
+deploy-greatsql-slave-01   1/1     94m
+deploy-greatsql-slave-02   1/1     5s
 ```
 
 查看Pod创建情况
@@ -865,16 +871,16 @@ deploy-greatsql-slaver-02   1/1     5s
 $ kubectl get po -n deploy-greatsql
 NAME                          READY   STATUS    RESTARTS   AGE
 deploy-greatsql-master-0      1/1     Running   0          123m
-deploy-greatsql-slaver-01-0   1/1     Running   0          94m
-deploy-greatsql-slaver-02-0   1/1     Running   0          22s
+deploy-greatsql-slave-01-0   1/1     Running   0          94m
+deploy-greatsql-slave-02-0   1/1     Running   0          22s
 ```
 
-> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe pod deploy-greatsql-slaver-02-0 -n deploy-greatsql`排查
+> 注意查看`READY`状态，若为0/1则需要使用`kubectl describe pod deploy-greatsql-slave-02-0 -n deploy-greatsql`排查
 
 接下来查看一下nfs挂载的目录，可以看到初始化文件已经出现了
 
 ```bash
-$ ls /data/nfs/greatsql-slaver-02
+$ ls /data/nfs/greatsql-slave-02
 auto.cnf    client-cert.pem  #file_purge        ib_buffer_pool  #innodb_redo  mysql.ibd   mysql.sock.lock     public_key.pem   slave-bin.000001  slave-bin.index  undo_001
 ca-key.pem  client-key.pem   #ib_16384_0.dblwr  ibdata1         #innodb_temp  mysql.pid   performance_schema  server-cert.pem  slave-bin.000002  sys              undo_002
 ca.pem      error.log        #ib_16384_1.dblwr  ibtmp1          mysql         mysql.sock  private_key.pem     server-key.pem   slave-bin.000003  sys_audit
@@ -930,7 +936,7 @@ $ change master to master_host='deploy-greatsql-master-0.deploy-greatsql-master-
 进入到第一个从节点
 
 ```bash
-$ kubectl exec -it deploy-greatsql-slaver-01-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
+$ kubectl exec -it deploy-greatsql-slave-01-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
 
 # 输入刚刚提到的指令
 greatsql> change master to master_host='deploy-greatsql-master-0.deploy-greatsql-master-svc.deploy-greatsql.svc.cluster.local', master_port=3306, master_user='root', master_password='greatsql', master_log_file='master-bin.000003', master_log_pos=157, master_connect_retry=30, get_master_public_key=1;
@@ -961,7 +967,7 @@ greatsql> start slave;
 进入第二个节点
 
 ```bash
-$ kubectl exec -it deploy-greatsql-slaver-02-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
+$ kubectl exec -it deploy-greatsql-slave-02-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
 ```
 
 输入刚刚的指令
@@ -1025,7 +1031,7 @@ greatsql> INSERT INTO testtable (name, age, address, created_at) VALUES
 接着进入两个从节点查看
 
 ```bash
-$ kubectl exec -it deploy-greatsql-slaver-01-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
+$ kubectl exec -it deploy-greatsql-slave-01-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
 greatsql>  select * from testdb.testtable;
 +----+-----------+-----+---------+---------------------+
 | id | name      | age | address | created_at          |
@@ -1043,7 +1049,7 @@ greatsql>  select * from testdb.testtable;
 +----+-----------+-----+---------+---------------------+
 10 rows in set (0.01 sec)
 # 从节点1没问题，接下来看看从节点2
-$ kubectl exec -it deploy-greatsql-slaver-02-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
+$ kubectl exec -it deploy-greatsql-slave-02-0 -n deploy-greatsql -- bash -c "mysql -uroot -p"
 greatsql>  show global variables like "server_id"; 
 +---------------+-------+
 | Variable_name | Value |
