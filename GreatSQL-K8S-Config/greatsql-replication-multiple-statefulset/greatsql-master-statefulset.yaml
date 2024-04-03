@@ -40,6 +40,8 @@ spec:
               key: PASSWORD
               name: greatsql-password
               optional: false
+	- name: MAXPERF
+	  value: "0"
       volumes:
       - name: greatsql-data
         persistentVolumeClaim:
