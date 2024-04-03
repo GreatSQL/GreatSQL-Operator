@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: deploy-greatsql-slaver-01-nfs-pv
+  name: deploy-greatsql-slave-02-nfs-pv
   namespace: deploy-greatsql
 spec:
   capacity:
@@ -9,15 +9,14 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-  # 注意修改IP地址和暴露的目录
     server: 192.168.139.120
-    path: /data/nfs/greatsql-slaver-01
+    path: /data/nfs/greatsql-slave-02
   storageClassName: "nfs"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: deploy-greatsql-slaver-01-nfs-pvc
+  name: deploy-greatsql-slave-02-nfs-pvc
   namespace: deploy-greatsql
 spec:
   accessModes:
@@ -26,4 +25,4 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  volumeName: deploy-greatsql-slaver-01-nfs-pv
+  volumeName: deploy-greatsql-slave-02-nfs-pv

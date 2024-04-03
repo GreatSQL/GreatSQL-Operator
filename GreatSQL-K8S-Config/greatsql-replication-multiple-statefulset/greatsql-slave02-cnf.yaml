@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   creationTimestamp: null
-  name: greatsql-slaver-01-cnf
+  name: greatsql-slave-02-cnf
   namespace: deploy-greatsql
 data:
   my.cnf: |
@@ -20,7 +20,7 @@ data:
     pid-file         = mysql.pid
     user             = mysql
     secure-file-priv = NULL
-    server-id        = 2   # server id,注意不同节点要不一样
+    server-id        = 3   # server id,注意不同节点要不一样
     log-bin          = slave-bin
     relay-log        = slave-relay-bin
     relay-log-index  = slave-bin.index

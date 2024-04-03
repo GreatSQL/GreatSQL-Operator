@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: deploy-greatsql-slaver-02
+  name: deploy-greatsql-slave-02
   namespace: deploy-greatsql
 spec:
   selector:
     matchLabels:
-      app: greatsql-slaver
-  serviceName: "deploy-greatsql-slaver-svc"
+      app: greatsql-slave
+  serviceName: "deploy-greatsql-slave-svc"
   replicas: 1
   template:
     metadata:
       labels:
-        app: greatsql-slaver
+        app: greatsql-slave
     spec:
       terminationGracePeriodSeconds: 10
       containers:
@@ -40,13 +40,15 @@ spec:
                   key: PASSWORD
                   name: greatsql-password
                   optional: false
+            - name: MAXPERF
+              value: "0"
       volumes:
         - name: greatsql-data
           persistentVolumeClaim:
-            claimName: deploy-greatsql-slaver-02-nfs-pvc
+            claimName: deploy-greatsql-slave-02-nfs-pvc
         - name: greatsql-conf
           configMap:
-            name: greatsql-slaver-02-cnf
+            name: greatsql-slave-02-cnf
             items:
               - key: my.cnf
                 mode: 0644
