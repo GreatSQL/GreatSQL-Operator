@@ -38,7 +38,7 @@ Kubectl中的资源类型及其别名和简单用法如下:
 - jobs - 任务,如:`kubectl get jobs`
 - cronjobs - 定时任务,如:`kubectl get cronjobs`
 - daemonsets (ds) - 守护进程集,如:`kubectl get ds`
-- statefulsets - 有状态集,如:`kubectl get statefulsets`
+- statefulsets（sts） - 有状态集,如:`kubectl get sts`
 - namespaces (ns) - 命名空间,如:`kubectl get ns`
 - events (ev) - 事件,如:`kubectl get ev`
 - ingresses (ing) - 入口规则,如:`kubectl get ing`
