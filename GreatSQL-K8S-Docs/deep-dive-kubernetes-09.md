@@ -146,6 +146,8 @@ spec:
           env:
             - name: MYSQL_ROOT_PASSWORD
               value: "greatsql"
+            - name: MAXPERF
+              value: "0"
           ports:
             - containerPort: 3306
               name: greatsql

@@ -310,8 +310,8 @@ $ systemctl enable nfs-server
 
 ```bash
 $ mkdir -p /data/nfs/greatsql-master
-$ mkdir -p /data/nfs/greatsql-slaver-01
-$ mkdir -p /data/nfs/greatsql-slaver-02
+$ mkdir -p /data/nfs/greatsql-slave-01
+$ mkdir -p /data/nfs/greatsql-slave-02
 ```
 
 并写入到`/etc/exports` 文件中，只在主节点上操作
@@ -319,8 +319,8 @@ $ mkdir -p /data/nfs/greatsql-slaver-02
 ```bash
 $ cat >> /etc/exports << EOF
 /data/nfs/greatsql-master *(rw,sync,no_root_squash)
-/data/nfs/greatsql-slaver-01 *(rw,sync,no_root_squash)
-/data/nfs/greatsql-slaver-02 *(rw,sync,no_root_squash)
+/data/nfs/greatsql-slave-01 *(rw,sync,no_root_squash)
+/data/nfs/greatsql-slave-02 *(rw,sync,no_root_squash)
 EOF
 ```
 接下来我们可以直接在主服务器上重启NFS服务器
@@ -336,8 +336,8 @@ $ systemctl restart nfs-server
 ```bash
 $ showmount -e 192.168.139.120
 Export list for 192.168.139.120:
-/data/nfs/greatsql-slaver-02 *
-/data/nfs/greatsql-slaver-01 *
+/data/nfs/greatsql-slave-02 *
+/data/nfs/greatsql-slave-01 *
 /data/nfs/greatsql-master    *
 ```
 
