@@ -19,7 +19,6 @@ data:
     secure-file-priv = /var/lib/mysql-files
     pid-file         = mysql.pid
     user             = mysql
-    secure-file-priv = NULL
     server-id        = 1
     log-bin          = master-bin
     log_bin_index    = master-bin.index
