@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mgr
+  namespace: greatsql
+  labels:
+    app: mgr
+data:
+  my.cnf: |
+    [client]
+    socket           = /data/GreatSQL/mysql.sock
+    [mysqld]
+    skip-name-resolve
+    skip-host-cache
+    datadir          = /data/GreatSQL
+    socket           = /data/GreatSQL/mysql.sock
+    log_error        = /data/GreatSQL/error.log
+    user             = mysql
+    log-bin
+    binlog-format    = ROW
+    binlog_checksum  = CRC32
+    log_slave_updates= ON
+    gtid_mode        = ON
+    key_buffer_size  = 1M
+    enforce_gtid_consistency = ON
+    log_error_verbosity      = 3
+    innodb_buffer_pool_size  = 128M
+    transaction_write_set_extraction        = XXHASH64
+    loose-plugin_load_add                   = 'mysql_clone.so'
+    loose-plugin_load_add                   = 'group_replication.so'
+    loose-group_replication_group_name      = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    loose-group_replication_group_seeds     = "mgr-0.mgr:33061,mgr-1.mgr:33061,mgr-2.mgr:33061"
+    loose-group_replication_ip_allowlist    = "mgr/8,10.0.0.0/8,192.0.0.0/8"
+    loose-group_replication_recovery_get_public_key = ON
+    loose-group_replication_flow_control_mode = "DISABLED"
+    loose-group_replication_single_primary_mode = ON
+    loose-group_replication_enforce_update_everywhere_checks=0
+    loose-group_replication_majority_after_mode = ON
+    loose-group_replication_communication_max_message_size = 10M
+    loose-group_replication_single_primary_fast_mode = 1
+    loose-group_replication_request_time_threshold = 100
+    loose-group_replication_primary_election_mode = GTID_FIRST
+    loose-group_replication_unreachable_majority_timeout = 0
+    loose-group_replication_member_expel_timeout = 5
+    loose-group_replication_autorejoin_tries = 288
+    !includedir /etc/my.cnf.d/
+  mgr-init.sh: |
+    set -ex
+    if [ -z "`mysql -f -e \"SELECT user FROM mysql.user WHERE user='mgr'\"`" ] ; then
+      mysql -f -e "SET SQL_LOG_BIN=0;
+                   CREATE USER mgr@'%' IDENTIFIED BY 'mgr-in-k8s';
+                   GRANT BACKUP_ADMIN, REPLICATION SLAVE ON *.* TO mgr@'%';
+                   RESET MASTER;
+                   RESET SLAVE ALL;
+                   SET SQL_LOG_BIN=1;
+                   CHANGE MASTER TO MASTER_USER='mgr', MASTER_PASSWORD='mgr-in-k8s'  FOR CHANNEL 'group_replication_recovery';
+                   START GROUP_REPLICATION;" > /dev/null 2>&1
+    else
+      mysql -f -e "START GROUP_REPLICATION;" > /dev/null 2>&1
+    fi
+    exit 0
+  mgr-stat.sh: |
+    set -ex
+    mysql -f -e "SELECT * FROM performance_schema.replication_group_members;
+                 SELECT MEMBER_ID AS id, COUNT_TRANSACTIONS_IN_QUEUE AS trx_tobe_certified, COUNT_TRANSACTIONS_REMOTE_IN_APPLIER_QUEUE AS relaylog_tobe_applied, COUNT_TRANSACTIONS_CHECKED AS trx_chkd, COUNT_TRANSACTIONS_REMOTE_APPLIED AS trx_done, COUNT_TRANSACTIONS_LOCAL_PROPOSED AS proposed FROM performance_schema.replication_group_member_stats;"
+    exit 0

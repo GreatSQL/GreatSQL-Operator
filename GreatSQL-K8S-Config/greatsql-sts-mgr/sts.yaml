@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mgr
+  namespace: greatsql
+spec:
+  selector:
+    matchLabels:
+      app: mgr
+  serviceName: mgr
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: mgr
+    spec:
+      initContainers:
+      - name: init-mgr
+        image: greatsql/greatsql:8.0.32-25
+        command:
+        - bash
+        - "-c"
+        - |
+          set -ex
+
+          [[ $HOSTNAME =~ -([0-9]+)$ ]]
+          ordinal=${BASH_REMATCH[1]}
+          server_id=$((3306 + $ordinal))
+
+          echo "[mysqld]" >> /etc/my.cnf.d/mgr.cnf
+          echo "server_id = ${server_id}" >> /etc/my.cnf.d/mgr.cnf
+
+          echo "loose-group_replication_local_address=`echo $HOSTNAME`.mgr:33061" >> /etc/my.cnf.d/mgr.cnf
+          echo "report_host=`echo $HOSTNAME`.mgr" >> /etc/my.cnf.d/mgr.cnf
+
+          ordinal=${BASH_REMATCH[1]}
+          if [[ $ordinal -eq 0 ]]; then
+            echo 'loose-group_replication_bootstrap_group = ON' >> /etc/my.cnf.d/mgr.cnf
+          fi
+
+          cp /mnt/mgr-cm/mgr-init.sh /tmp
+          cp /mnt/mgr-cm/mgr-stat.sh /tmp
+          chmod +x /tmp/*sh
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: extra-cnf
+          mountPath: /etc/my.cnf.d/
+        - name: mgr-cm
+          mountPath: /mnt/mgr-cm
+        - name: mgr-cm
+          mountPath: /etc/my.cnf
+          subPath: my.cnf
+      containers:
+      - name: mgr
+        image: greatsql/greatsql:8.0.32-25
+#        resources:
+#          limits:
+#            cpu: 1
+#            memory: "512Mi"
+        env:
+        - name: MYSQL_ALLOW_EMPTY_PASSWORD
+          value: "1"
+        - name: MAXPERF
+          value: "0"
+        ports:
+        - name: mysql-port
+          containerPort: 3306
+          containerPort: 33061
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: extra-cnf
+          mountPath: /etc/my.cnf.d/
+        - name: mgr-cm
+          mountPath: /mnt/mgr-cm
+        - name: mgr-cm
+          mountPath: /etc/my.cnf
+          subPath: my.cnf
+        - name: pvc-mgr
+          mountPath: /data/GreatSQL
+          subPath: GreatSQL
+        livenessProbe:
+          exec:
+            command: ["mysqladmin", "ping"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command: ["mysql", "-e", "SELECT 1"]
+          initialDelaySeconds: 10
+          periodSeconds: 2
+          timeoutSeconds: 1
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: extra-cnf
+        emptyDir: {}
+      - name: mgr-cm
+        configMap:
+          name: mgr
+      - name: pvc-mgr
+        persistentVolumeClaim:
+          claimName: pvc-mgr
