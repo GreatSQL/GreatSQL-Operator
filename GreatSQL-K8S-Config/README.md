@@ -34,6 +34,14 @@ $ kubectl apply -f greatsql-deployment.yaml
 
 可以在一个StatefulSet中创建多个pod，并构建一个MGR集群。
 
+前置条件：
+
+1. 本案例中需要部署3个pod，对应需要3个持久卷（PV）；
+
+2. 因此，也相应的需要3个节点来分配相应的PV。
+
+3. 如果只有两个节点，可以把pod数量缩减到2，只部署一主一从两个节点的MGR集群形态。
+
 使用如下命令，即可快速创建StatefulSet：
 ```bash
 $ kubectl apply -f ./greatsql-sts-mgr/ns.yaml
